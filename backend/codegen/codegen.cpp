@@ -1,14 +1,11 @@
 #include "../../frontend/astgen/astgen.hpp"
-#include "../../frontend/lexer/tokens.hpp"
-#include "../../common/bytecode.h"
 
 #include <string>
-#include <fstream>
 #include <cstdint>
 #include <vector>
 #include <variant>
-#include <iostream>
 #include <type_traits>
+#include "codegen.hpp"
 
 namespace {
     void emit_u8(std::vector<uint8_t>& out, uint8_t v) {
