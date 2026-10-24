@@ -23,6 +23,11 @@ int main(int argc, char* argv[]) {
               std::string(args.getArg("-o").value_or("main.bvm")));
     }
 
+    if (args.hasArg("-d")) {
+        run(std::string(args.getArg("-d").value_or("")),
+              std::string(args.getArg("-o").value_or("main.bvm")));
+    }
+
 
     return 0;
 }

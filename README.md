@@ -49,6 +49,12 @@ bolt time in -o out
 ```
 Writes the bytecode and prints the time taked at every stage
 
+4. direct
+
+```bash
+bolt -d "var name = 'a';" -o out
+```
+
 ---
 
 In all three modes, `in` is `main.blt` if not specified and `out`, `main.bvm`.

@@ -112,3 +112,17 @@ void timeRun(std::string file, std::string out) {
     output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
     output.close();
 }
+
+void run(std::string code, std::string out) {
+    const AST ast = createAST(tokenize(code));
+    checkAST(ast);
+    const auto bytecode = generateBytecode(ast);
+
+    std::ofstream output(out, std::ios::binary);
+    if (!output) {
+        throwError("Bolt File Error: Couldn't open file '" + out + "'");
+    }
+
+    output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
+    output.close();
+}
