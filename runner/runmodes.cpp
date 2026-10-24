@@ -1,16 +1,16 @@
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
 #include <chrono>
+#include <fstream>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "../backend/codegen/codegen.hpp"
+#include "../debug/errors.hpp"
+#include "../debug/print.hpp"
 #include "../frontend/astgen/astgen.hpp"
 #include "../frontend/checker/structure.hpp"
 #include "../frontend/lexer/tokens.hpp"
-#include "../debug/errors.hpp"
-#include "../debug/print.hpp"
 
 void normalRun(std::string file, std::string out) {
     std::ifstream input(file);
@@ -29,7 +29,7 @@ void normalRun(std::string file, std::string out) {
 
     std::ofstream output(out, std::ios::binary);
     if (!output) {
-        throwError("Bolt File Error: Couldn't open file '"+out+"'");
+        throwError("Bolt File Error: Couldn't open file '" + out + "'");
     }
 
     output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
@@ -57,7 +57,7 @@ void debugRun(std::string file, std::string out) {
 
     std::ofstream output(out, std::ios::binary);
     if (!output) {
-        throwError("Bolt File Error: Couldn't open file '"+out+"'");
+        throwError("Bolt File Error: Couldn't open file '" + out + "'");
     }
 
     output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
@@ -106,10 +106,9 @@ void timeRun(std::string file, std::string out) {
 
     std::ofstream output(out, std::ios::binary);
     if (!output) {
-        throwError("Bolt File Error: Couldn't open file '"+out+"'");
+        throwError("Bolt File Error: Couldn't open file '" + out + "'");
     }
 
     output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
     output.close();
 }
-
