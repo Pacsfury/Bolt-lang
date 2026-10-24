@@ -14,12 +14,12 @@ int main(int argc, char* argv[]) {
     }
 
     if (args.hasArg("debug")) {
-        debugRun(std::string(args.getArg("run").value_or("main.blt")),
+        debugRun(std::string(args.getArg("debug").value_or("main.blt")),
               std::string(args.getArg("-o").value_or("main.bvm")));
     }
 
     if (args.hasArg("time")) {
-        timeRun(std::string(args.getArg("run").value_or("main.blt")),
+        timeRun(std::string(args.getArg("time").value_or("main.blt")),
               std::string(args.getArg("-o").value_or("main.bvm")));
     }
 
