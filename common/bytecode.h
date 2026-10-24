@@ -12,7 +12,7 @@ typedef enum {
     OP_MUL,
     OP_DIV,
     OP_HALT,
-    OP_COUNT   // keep last: number of opcodes
+    OP_COUNT  // keep last: number of opcodes
 } Operations;
 
 #ifdef __cplusplus

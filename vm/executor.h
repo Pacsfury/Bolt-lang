@@ -7,10 +7,8 @@
 #include "../common/bytecode.h"
 
 static inline int32_t read_int(const uint8_t** ip) {
-    uint32_t value = (uint32_t)(*ip)[0]
-        | ((uint32_t)(*ip)[1] << 8)
-        | ((uint32_t)(*ip)[2] << 16)
-        | ((uint32_t)(*ip)[3] << 24);
+    uint32_t value =
+        (uint32_t)(*ip)[0] | ((uint32_t)(*ip)[1] << 8) | ((uint32_t)(*ip)[2] << 16) | ((uint32_t)(*ip)[3] << 24);
     *ip += 4;
 
     if (value <= INT32_MAX)

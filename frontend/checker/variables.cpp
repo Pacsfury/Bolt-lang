@@ -1,6 +1,7 @@
+#include <algorithm>
 #include <string>
 #include <vector>
-#include <algorithm>
+
 #include "../../debug/errors.hpp"
 
 void registervar(std::string name) {
@@ -11,6 +12,4 @@ void registervar(std::string name) {
     } else {
         throwError("Redeclared variable '" + name + "'");
     }
-
-
 }

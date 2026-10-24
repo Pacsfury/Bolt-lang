@@ -1,18 +1,18 @@
-#include <iostream>
 #include <chrono>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
-#include "debug/print.hpp"
-#include "frontend/lexer/tokens.hpp"
-#include "frontend/astgen/astgen.hpp"
 #include "backend/codegen/codegen.hpp"
+#include "debug/print.hpp"
+#include "frontend/astgen/astgen.hpp"
 #include "frontend/checker/structure.hpp"
+#include "frontend/lexer/tokens.hpp"
 
 int main() {
     std::ifstream input("bench.blt");
     if (!input.is_open()) {
-        std::cerr<<"Bolt File Error: could't open 'bench.blt";
+        std::cerr << "Bolt File Error: could't open 'bench.blt";
     }
 
     std::ostringstream buffer;
@@ -24,7 +24,7 @@ int main() {
     auto tokens = tokenize(content);
 
     auto lexend = std::chrono::high_resolution_clock::now();
-    
+
     show(tokens);
 
     auto lextime = std::chrono::duration_cast<std::chrono::nanoseconds>(lexend - lexstart).count();
@@ -39,7 +39,7 @@ int main() {
     auto asttime = std::chrono::duration_cast<std::chrono::nanoseconds>(astend - astart).count();
 
     std::cout << "ASTgen time: " << asttime << " nanosecons." << std::endl;
-    std::cout << "Or: " << asttime / 1000000.0 << " ms." << std::endl;  
+    std::cout << "Or: " << asttime / 1000000.0 << " ms." << std::endl;
 
     show(ast);
 
@@ -48,8 +48,6 @@ int main() {
 
     auto checkend = std::chrono::high_resolution_clock::now();
     auto checktime = std::chrono::duration_cast<std::chrono::nanoseconds>(checkend - checkstart).count();
-
-
 
     std::cout << "Checking time: " << checktime << " nanosecons." << std::endl;
     std::cout << "Or: " << checktime / 1000000.0 << " ms." << std::endl;
@@ -60,8 +58,6 @@ int main() {
     auto genend = std::chrono::high_resolution_clock::now();
     auto gentime = std::chrono::duration_cast<std::chrono::nanoseconds>(genend - genstart).count();
 
-
-
     std::cout << "Codegen time: " << gentime << " nanosecons." << std::endl;
     std::cout << "Or: " << gentime / 1000000.0 << " ms." << std::endl;
 
@@ -69,13 +65,9 @@ int main() {
     if (!output) {
         return 1;
     }
-    
-    output.write(reinterpret_cast<const char*>(bytecode.data()),
-                 static_cast<std::streamsize>(bytecode.size()));
+
+    output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
     output.close();
-
-
-
 
     return 0;
 }

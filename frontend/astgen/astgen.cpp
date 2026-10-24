@@ -1,8 +1,8 @@
 #include <vector>
 
+#include "../../debug/errors.hpp"
 #include "../lexer/tokens.hpp"
 #include "astgen.hpp"
-#include "../../debug/errors.hpp"
 
 inline NodeId parse_expression(ParserState& state, AST& ast) {
     Token current = state.peek();
@@ -27,14 +27,14 @@ AST createAST(std::vector<Token> tokens) {
 
         switch (actual.type) {
             case tokens::var: {
-                state.consume(); // consume var
-                
-                Token name_token = state.consume(); // consume name
+                state.consume();  // consume var
+
+                Token name_token = state.consume();  // consume name
 
                 if (state.peek().type != tokens::equal) {
-                    throwError("Bolt Syntax Error: expected '=' after variable name"); 
+                    throwError("Bolt Syntax Error: expected '=' after variable name");
                 }
-                state.consume(); // consume =
+                state.consume();  // consume =
 
                 VarDecl vardecl{parse_expression(state, ast), ast.add_string(name_token.value)};
 
@@ -50,7 +50,7 @@ AST createAST(std::vector<Token> tokens) {
                 break;
         }
     }
-    eof: ;
+eof:;
 
     return ast;
 }
