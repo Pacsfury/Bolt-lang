@@ -1,0 +1,23 @@
+#include <string>
+#include <vector>
+#include <variant>
+
+#include "../astgen/astgen.hpp"
+#include "../lexer/tokens.hpp"
+#include "structure.hpp"
+#include "variables.hpp"
+#include <type_traits>
+
+void checkAST(const AST& ast) {
+    static const std::vector<Node> nodes = ast.nodes;
+
+    for (Node n : nodes) {
+        std::visit([&](const auto& value) {
+            using T = std::decay_t<decltype(value)>;
+
+            if constexpr (std::is_same_v<T, VarDecl>) { // Structure checked by astgen already
+                registervar(ast.strings[value.name_index]);
+            }
+        }, n.data);
+    }
+}

@@ -7,6 +7,7 @@
 #include "frontend/lexer/tokens.hpp"
 #include "frontend/astgen/astgen.hpp"
 #include "backend/codegen/codegen.hpp"
+#include "frontend/checker/structure.hpp"
 
 int main() {
     std::ifstream input("bench.blt");
@@ -41,6 +42,17 @@ int main() {
     std::cout << "Or: " << asttime / 1000000.0 << " ms." << std::endl;  
 
     show(ast);
+
+    auto checkstart = std::chrono::high_resolution_clock::now();
+    checkAST(ast);
+
+    auto checkend = std::chrono::high_resolution_clock::now();
+    auto checktime = std::chrono::duration_cast<std::chrono::nanoseconds>(checkend - checkstart).count();
+
+
+
+    std::cout << "Checking time: " << checktime << " nanosecons." << std::endl;
+    std::cout << "Or: " << checktime / 1000000.0 << " ms." << std::endl;
 
     auto genstart = std::chrono::high_resolution_clock::now();
     auto bytecode = generateBytecode(ast);
