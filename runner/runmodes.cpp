@@ -75,32 +75,21 @@ void timeRun(std::string file, std::string out) {
     std::string content = buffer.str();
 
     auto lexstart = std::chrono::high_resolution_clock::now();
-
     auto tokens = tokenize(content);
-
     auto lexend = std::chrono::high_resolution_clock::now();
-
-    show(tokens);
-
     auto lextime = std::chrono::duration_cast<std::chrono::nanoseconds>(lexend - lexstart).count();
-
     std::cout << "Lexing time: " << lextime << " nanosecons." << std::endl;
     std::cout << "Or: " << lextime / 1000000.0 << " ms." << std::endl;
 
     auto astart = std::chrono::high_resolution_clock::now();
     auto ast = createAST(tokens);
-
     auto astend = std::chrono::high_resolution_clock::now();
     auto asttime = std::chrono::duration_cast<std::chrono::nanoseconds>(astend - astart).count();
-
     std::cout << "ASTgen time: " << asttime << " nanosecons." << std::endl;
     std::cout << "Or: " << asttime / 1000000.0 << " ms." << std::endl;
 
-    show(ast);
-
     auto checkstart = std::chrono::high_resolution_clock::now();
     checkAST(ast);
-
     auto checkend = std::chrono::high_resolution_clock::now();
     auto checktime = std::chrono::duration_cast<std::chrono::nanoseconds>(checkend - checkstart).count();
 
@@ -109,7 +98,6 @@ void timeRun(std::string file, std::string out) {
 
     auto genstart = std::chrono::high_resolution_clock::now();
     auto bytecode = generateBytecode(ast);
-
     auto genend = std::chrono::high_resolution_clock::now();
     auto gentime = std::chrono::duration_cast<std::chrono::nanoseconds>(genend - genstart).count();
 
