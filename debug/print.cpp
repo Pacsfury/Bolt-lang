@@ -10,7 +10,7 @@
 #include "print.hpp"
 
 std::string_view tokenToString(tokens type) {
-    static constexpr std::array<std::string_view, 11> token_names = {
+    static constexpr std::array<std::string_view, 12> token_names = {
         "var",         // 0
         "c_int",       // 1
         "plus",        // 2
@@ -21,7 +21,8 @@ std::string_view tokenToString(tokens type) {
         "identifier",  // 7
         "equal",       // 8
         "eof",         // 9
-        "c_char"       // 10
+        "c_char",      // 10
+        "semi"         // 11
     };
 
     auto index = static_cast<size_t>(type);
