@@ -8,7 +8,7 @@ def build():
     
     compiler = os.getenv("CPP_COMPILER", "g++").upper()
 
-    source_files = glob.glob("backend/codegen/*.cpp") + glob.glob("debug/*.cpp") + glob.glob("frontend/*/*.cpp") + ["main.cpp"]
+    source_files = glob.glob("backend/codegen/*.cpp") + glob.glob("debug/*.cpp") + glob.glob("frontend/*/*.cpp") + glob.glob("runner/*.cpp") + ["main.cpp"]
     
     if not source_files:
         print("Files not found.")

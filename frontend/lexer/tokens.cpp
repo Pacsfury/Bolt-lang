@@ -38,6 +38,9 @@ std::vector<Token> tokenize(const std::string& src) {
             case '=':
                 t.type = tokens::equal;
                 break;
+            case ';':
+                t.type = tokens::semi;
+                break;
             default:
                 is_single_char = false;
                 break;
@@ -51,7 +54,7 @@ std::vector<Token> tokenize(const std::string& src) {
 
         size_t start = i;
         while (i < length && actual != ' ' && actual != '\t' && actual != '\n' && actual != '\r' && actual != '+' &&
-               actual != '-' && actual != '*' && actual != '/' && actual != '=') {
+               actual != '-' && actual != '*' && actual != '/' && actual != '=' && actual != ';') {
             if (++i >= length) {
                 break;
             }

@@ -10,6 +10,6 @@ void registervar(std::string name) {
     if (std::find(DEFINEDVARS.begin(), DEFINEDVARS.end(), name) == DEFINEDVARS.end()) {
         DEFINEDVARS.push_back(name);
     } else {
-        throwError("Redeclared variable '" + name + "'");
+        throwError("Bolt Syntax Error: Redeclared variable '" + name + "'");
     }
 }

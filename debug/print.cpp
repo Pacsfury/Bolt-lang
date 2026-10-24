@@ -33,15 +33,14 @@ std::string_view tokenToString(tokens type) {
 }
 
 void show(std::vector<Token> vec) {
-    std::cout << "> TOKENS:\n";
+    std::cout << "TOKENS:\n";
     for (Token t : vec) {
         std::cout << "    " << tokenToString(t.type) << "[" << t.value << "]\n";
     }
-    std::cout << "< END TOKENS; \n";
 }
 
 void show(const AST& ast) {
-    std::cout << "> AST:\n";
+    std::cout << "AST:\n";
     for (const auto& n : ast.nodes) {
         if (auto literal = std::get_if<Literal>(&n.data)) {
             std::cout << "  Literal: " << literal->value << "\n";
@@ -53,5 +52,5 @@ void show(const AST& ast) {
                       << vardecl->initializer << "\n";
         }
     }
-    std::cout << "< END AST; \n";
+    std::cout << "\n";
 }

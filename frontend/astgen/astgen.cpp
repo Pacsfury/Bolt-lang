@@ -8,15 +8,20 @@ inline NodeId parse_expression(ParserState& state, AST& ast) {
     Token current = state.peek();
 
     if (current.type == tokens::c_int) {
+        state.consume();
         Literal lit{std::stoi(current.value)};
         return ast.add_node(Node{lit});
-    } else if (current.type == tokens::c_char) {
+    } 
+    else if (current.type == tokens::c_char) {
+        state.consume();
         Literal lit{(int)(current.value[0])};
         return ast.add_node(Node{lit});
     }
+
     throwError("Bolt Syntax Error: unrecognized operation");
     return 1;
 }
+
 
 AST createAST(std::vector<Token> tokens) {
     AST ast;
@@ -27,18 +32,22 @@ AST createAST(std::vector<Token> tokens) {
 
         switch (actual.type) {
             case tokens::var: {
-                state.consume();  // consume var
-
-                Token name_token = state.consume();  // consume name
+                state.consume(); // consume 'var'
+                Token name_token = state.consume();
 
                 if (state.peek().type != tokens::equal) {
                     throwError("Bolt Syntax Error: expected '=' after variable name");
                 }
-                state.consume();  // consume =
+                state.consume(); // consume '='
 
                 VarDecl vardecl{parse_expression(state, ast), ast.add_string(name_token.value)};
-
                 ast.add_node(Node{vardecl});
+
+                if (state.peek().type != tokens::semi) {
+                    throwError("Bolt Syntax Error: expected ';' after statement");
+                }
+                state.consume(); // consume ';'
+
                 break;
             }
             case tokens::eof: {
