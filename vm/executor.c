@@ -23,7 +23,7 @@ void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
         [0 ... 255] = &&L_BAD,  // GNU range initializer
         [OP_PUSH] = &&L_PUSH,  [OP_POP] = &&L_POP, [OP_ADD] = &&L_ADD,   [OP_SUB] = &&L_SUB,
         [OP_MUL] = &&L_MUL,    [OP_DIV] = &&L_DIV, [OP_HALT] = &&L_HALT, [OP_STORE] = &&L_STORE, [OP_LOAD] = &&L_LOAD,
-        [OP_DEL] = &&L_DEL,
+        [OP_DEL] = &&L_DEL, [OP_PRINT] == &&L_PRINT
     };
 #define NEXT() goto* dispatch[*ip++]
 #define CASE(name) L_##name:
@@ -104,6 +104,12 @@ void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
     CASE(DEL) {
         assert(!stack_empty(&dataStack));
         --dataStack.sp;
+        NEXT();
+    }
+
+    CASE(PRINT) {
+        char* data = cpool_read(read_int(&ip));
+        puts(data);
         NEXT();
     }
 
