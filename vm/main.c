@@ -97,6 +97,14 @@ int main(void) {
     DynamicStack stack;
     init_stack(&stack, 64);
 
+    const uint8_t* code = bytecode;
+    if (read_int(&code) != 1112493140) /* Does it start with BOLT? */ {
+        fprintf(stderr, "BVM Syntax Error: Missing 'BOLT' at file start\n");
+        free_stack(&stack);
+        free(bytecode);
+        return 1;
+    }
+
     TimerPoint start, end;
     if (!timer_init()) {
         report_timer_error("Timer initialization");
@@ -111,7 +119,7 @@ int main(void) {
         return 1;
     }
 
-    execute(&stack, bytecode);
+    execute(&stack, code);
 
     if (!timer_now(&end)) {
         report_timer_error("Timer end");
