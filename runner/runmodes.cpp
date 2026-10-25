@@ -127,6 +127,15 @@ void run(std::string code, std::string out) {
     output.close();
 }
 
-void checkRun(std::string code) {
-    checkAST(createAST(tokenize(code)));
+void checkRun(std::string file) {
+    std::ifstream input(file);
+    if (!input.is_open()) {
+        throwError("Bolt File Error: Could't open '" + file + "'");
+    }
+
+    std::ostringstream buffer;
+    buffer << input.rdbuf();
+    std::string content = buffer.str();
+    
+    checkAST(createAST(tokenize(content)));
 }
