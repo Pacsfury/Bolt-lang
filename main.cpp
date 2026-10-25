@@ -19,6 +19,10 @@ int main(int argc, char* argv[]) {
         timeRun(std::string(args.getArg("time").value_or("main.blt")), OUT);
     }
 
+    if (args.hasArg("check")) {
+        checkRun(std::string(args.getArg("check").value_or("main.blt")));
+    }
+
     if (args.hasArg("-d")) {
         run(std::string(args.getArg("-d").value_or("")), OUT);
     }

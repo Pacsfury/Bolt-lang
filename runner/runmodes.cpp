@@ -126,3 +126,7 @@ void run(std::string code, std::string out) {
     output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
     output.close();
 }
+
+void checkRun(std::string code) {
+    checkAST(createAST(tokenize(code)));
+}
