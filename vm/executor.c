@@ -4,13 +4,15 @@
 #include <string.h>
 
 #include "../common/bytecode.h"
-#include "executor.h"
 #include "vector.h"
+#include "executor.h"
 
 typedef char compile_time_assert_opcodes[(OP_COUNT <= 256) ? 1 : -1];
 
 void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
     const uint8_t* ip = code;
+    DynamicStack dataStack;
+    init_stack(&dataStack, 16);
     int* sp = s->sp;
     int* limit = s->limit;
     int* base = s->base;
@@ -21,7 +23,8 @@ void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
     static const void* const dispatch[256] = {
         [0 ... 255] = &&L_BAD,  // GNU range initializer
         [OP_PUSH] = &&L_PUSH,  [OP_POP] = &&L_POP, [OP_ADD] = &&L_ADD,   [OP_SUB] = &&L_SUB,
-        [OP_MUL] = &&L_MUL,    [OP_DIV] = &&L_DIV, [OP_HALT] = &&L_HALT,
+        [OP_MUL] = &&L_MUL,    [OP_DIV] = &&L_DIV, [OP_HALT] = &&L_HALT, [OP_STORE] = &&L_STORE, [OP_LOAD] = &&L_LOAD,
+        [OP_DEL] = &&L_DEL,
     };
 #define NEXT() goto* dispatch[*ip++]
 #define CASE(name) L_##name:
@@ -82,7 +85,27 @@ void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
 
     CASE(HALT) {
         s->sp = sp;
+        free_stack(&dataStack);
         return;
+    }
+
+    CASE(STORE) {
+        int slot = read_int(&ip);
+        assert(sp > base);
+        dataStack.base[slot] = *--sp;
+        NEXT();
+    }
+
+    CASE(LOAD) {
+        int slot = read_int(&ip);
+        *sp++ = dataStack.base[slot];
+        NEXT();
+    }
+
+    CASE(DEL) {
+        assert(!stack_empty(&dataStack));
+        --dataStack.sp;
+        NEXT();
     }
 
 #if defined(__GNUC__) || defined(__clang__)
