@@ -32,8 +32,16 @@ void normalRun(std::string file, std::string out) {
         throwError("Bolt File Error: Couldn't open file '" + out + "'");
     }
 
-    output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
+    output.write(reinterpret_cast<const char*>(bytecode.first.data()), static_cast<std::streamsize>(bytecode.first.size()));
     output.close();
+
+    std::ofstream constpool("BVM-CPOOL", std::ios::binary);
+    if (!constpool) {
+        throwError("Bolt File Error: Couldn't open file 'BVM-CPOOL'");
+    }
+
+    constpool.write(reinterpret_cast<const char*>(bytecode.second.data()), static_cast<std::streamsize>(bytecode.second.size()));
+    constpool.close();
 }
 
 void debugRun(std::string file, std::string out) {
@@ -60,8 +68,16 @@ void debugRun(std::string file, std::string out) {
         throwError("Bolt File Error: Couldn't open file '" + out + "'");
     }
 
-    output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
+    output.write(reinterpret_cast<const char*>(bytecode.first.data()), static_cast<std::streamsize>(bytecode.first.size()));
     output.close();
+
+    std::ofstream constpool("BVM-CPOOL", std::ios::binary);
+    if (!constpool) {
+        throwError("Bolt File Error: Couldn't open file 'BVM-CPOOL'");
+    }
+
+    constpool.write(reinterpret_cast<const char*>(bytecode.second.data()), static_cast<std::streamsize>(bytecode.second.size()));
+    constpool.close();
 }
 
 void timeRun(std::string file, std::string out) {
@@ -109,8 +125,16 @@ void timeRun(std::string file, std::string out) {
         throwError("Bolt File Error: Couldn't open file '" + out + "'");
     }
 
-    output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
+    output.write(reinterpret_cast<const char*>(bytecode.first.data()), static_cast<std::streamsize>(bytecode.first.size()));
     output.close();
+
+    std::ofstream constpool("BVM-CPOOL", std::ios::binary);
+    if (!constpool) {
+        throwError("Bolt File Error: Couldn't open file 'BVM-CPOOL'");
+    }
+
+    constpool.write(reinterpret_cast<const char*>(bytecode.second.data()), static_cast<std::streamsize>(bytecode.second.size()));
+    constpool.close();
 }
 
 void run(std::string code, std::string out) {
@@ -123,8 +147,16 @@ void run(std::string code, std::string out) {
         throwError("Bolt File Error: Couldn't open file '" + out + "'");
     }
 
-    output.write(reinterpret_cast<const char*>(bytecode.data()), static_cast<std::streamsize>(bytecode.size()));
+    output.write(reinterpret_cast<const char*>(bytecode.first.data()), static_cast<std::streamsize>(bytecode.first.size()));
     output.close();
+
+    std::ofstream constpool("BVM-CPOOL", std::ios::binary);
+    if (!constpool) {
+        throwError("Bolt File Error: Couldn't open file 'BVM-CPOOL'");
+    }
+
+    constpool.write(reinterpret_cast<const char*>(bytecode.second.data()), static_cast<std::streamsize>(bytecode.second.size()));
+    constpool.close();
 }
 
 void checkRun(std::string file) {

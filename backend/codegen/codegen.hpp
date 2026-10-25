@@ -6,4 +6,4 @@
 
 #include "../../frontend/astgen/astgen.hpp"
 
-std::vector<uint8_t> generateBytecode(const AST& ast, const std::string& path = "main.bvm");
+std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST& ast, const std::string& path = "main.bvm");

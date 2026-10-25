@@ -10,7 +10,7 @@
 #include "print.hpp"
 
 std::string_view tokenToString(tokens type) {
-    static constexpr std::array<std::string_view, 12> token_names = {
+    static constexpr std::array<std::string_view, 13> token_names = {
         "var",         // 0
         "c_int",       // 1
         "plus",        // 2
@@ -22,7 +22,8 @@ std::string_view tokenToString(tokens type) {
         "equal",       // 8
         "eof",         // 9
         "c_char",      // 10
-        "semi"         // 11
+        "semi",        // 11
+        "write"        // 12
     };
 
     auto index = static_cast<size_t>(type);
@@ -51,6 +52,8 @@ void show(const AST& ast) {
         } else if (auto vardecl = std::get_if<VarDecl>(&n.data)) {
             std::cout << "  VarDecl: [name] " << ast.strings[vardecl->name_index] << " [value_node_index] "
                       << vardecl->initializer << "\n";
+        } else if (auto write = std::get_if<WriteNode>(&n.data)) {
+            std::cout << "  WriteNode: " << write->str << "\n";
         }
     }
     std::cout << "\n";

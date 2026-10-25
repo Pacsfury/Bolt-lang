@@ -24,8 +24,12 @@ struct VarDecl {
     int name_index;
 };
 
+struct WriteNode {
+    std::string str;
+};
+
 struct Node {
-    std::variant<Literal, BinaryOp, VarDecl> data;
+    std::variant<Literal, BinaryOp, VarDecl, WriteNode> data;
 };
 
 struct AST {

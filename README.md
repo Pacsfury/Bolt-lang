@@ -26,7 +26,7 @@ python build/build.py vm
 
 ## Run modes
 
-Currently, Bolt has three different modes of running code:
+Currently, Bolt has five different modes of running code:
 
 1. run
 
@@ -47,7 +47,7 @@ Writes the bytecode and prints the tokens and the AST
 ```bash
 bolt time in -o out
 ```
-Writes the bytecode and prints the time taked at every stage
+Writes the bytecode and prints the time taken at every stage
 
 4. direct
 
@@ -83,3 +83,54 @@ var n2: int = 494;
 print(add(n1, n2)); // This print method is a placeholder for future print methods
 
 ```
+
+### write
+
+```
+write "string or char";
+```
+
+### variables
+
+```
+var name = 'a';
+var points: i16 = 45;
+```
+
+Write and simple variables are working!
+
+## How to compile and run your program
+
+1. Write your program
+
+We will use this as an example:
+
+`main.blt`
+```
+write "hello, world!";
+```
+
+2. Compile with Bolt
+
+```bash
+bolt run main.blt -o main.bvm
+```
+
+3. Move the resulting files (`main.bvm` and `BVM-CPOOL`) to the `vm/` folder
+
+4. Run the bytecode
+
+```bash
+cd vm
+bvm
+```
+
+You will see something like this:
+```
+hello, world!
+
+VM Execution time: 130000 nanoseconds.
+Or: 0.1300 ms.
+```
+
+> Note: the vm uses `puts` and reads the CPOOL file, so using write is kinda slow

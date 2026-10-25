@@ -4,7 +4,7 @@
 
 #include "tokens.hpp"
 
-std::unordered_map<std::string, int> keyword_mapping = {{"var", 0}};
+std::unordered_map<std::string, int> keyword_mapping = {{"var", 0}, {"write", 0}};
 
 std::vector<Token> tokenize(const std::string& src) {
     std::vector<Token> result;
@@ -53,12 +53,24 @@ std::vector<Token> tokenize(const std::string& src) {
         }
 
         size_t start = i;
-        while (i < length && actual != ' ' && actual != '\t' && actual != '\n' && actual != '\r' && actual != '+' &&
-               actual != '-' && actual != '*' && actual != '/' && actual != '=' && actual != ';') {
-            if (++i >= length) {
-                break;
+        if (actual == '"' || actual == '\'') {
+            const char quote = actual;
+            while (++i < length) {
+                if (src[i] == '\\' && i + 1 < length) {
+                    ++i;
+                } else if (src[i] == quote) {
+                    ++i;
+                    break;
+                }
             }
-            actual = src[i];
+        } else {
+            while (i < length && actual != ' ' && actual != '\t' && actual != '\n' && actual != '\r' && actual != '+' &&
+                   actual != '-' && actual != '*' && actual != '/' && actual != '=' && actual != ';') {
+                if (++i >= length) {
+                    break;
+                }
+                actual = src[i];
+            }
         }
 
         size_t token_len = i - start;
@@ -68,7 +80,8 @@ std::vector<Token> tokenize(const std::string& src) {
 
             if (view == "var") {
                 t.type = tokens::var;
-
+            } else if (view == "write") {
+                t.type = tokens::write;
             } else if (token_len >= 2 && (view.front() == view.back()) &&
                        (view.front() == '"' || view.front() == '\'')) {
                 if (token_len == 3) {  // '|" + char + '|"

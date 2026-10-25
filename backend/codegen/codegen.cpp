@@ -19,9 +19,11 @@ void emit_u32(std::vector<uint8_t>& out, uint32_t v) {
 }
 }  // namespace
 
-std::vector<uint8_t> generateBytecode(const AST& ast, const std::string& path) {
+std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST& ast, const std::string& path) {
+    size_t cpoolidx = 0;
     std::vector<uint8_t> bytecode;
     std::vector<uint8_t> header;
+    std::vector<uint8_t> cpool;
     bytecode.reserve(ast.nodes.size() * 8);
     header.reserve(ast.nodes.size() / 8);
     emit_u8(header, 'B');
@@ -40,12 +42,20 @@ std::vector<uint8_t> generateBytecode(const AST& ast, const std::string& path) {
                 } else if constexpr (std::is_same_v<T, Literal>) {
                     emit_u8(bytecode, OP_PUSH);
                     emit_u32(bytecode, static_cast<uint32_t>(value.value));
+                } else if constexpr (std::is_same_v<T, WriteNode>) {
+                    cpoolidx++;
+                    cpool.insert(cpool.end(), value.str.begin(), value.str.end());
+                    emit_u8(cpool, 0x0A);
+
+                    emit_u8(bytecode, OP_PRINT);
+                    emit_u32(bytecode, cpoolidx);
                 }
+
             },
             node.data);
     }
 
     emit_u8(bytecode, OP_HALT);
     header.insert(header.end(), bytecode.begin(), bytecode.end());
-    return header;
+    return {header, cpool};
 }

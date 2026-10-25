@@ -50,6 +50,21 @@ AST createAST(std::vector<Token> tokens) {
 
                 break;
             }
+            case tokens::write: {
+                state.consume(); // consume 'write'
+                if (state.peek().type != tokens::c_str && state.peek().type != tokens::c_char) {
+                    throwError("Bolt Syntax Error: expected string or char after 'write'");
+                }
+                WriteNode node{state.consume().value};
+                ast.add_node(Node{node});
+
+                if (state.peek().type != tokens::semi) {
+                    throwError("Bolt Syntax Error: expected ';' after statement");
+                }
+                state.consume(); // consume ';'
+
+                break;
+            }
             case tokens::eof: {
                 goto eof;
                 break;
