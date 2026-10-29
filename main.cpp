@@ -7,8 +7,8 @@ int main(int argc, char* argv[]) {
     ArgsContext args({argc, argv});
     const static std::string OUT = std::string(args.getArg("-o").value_or("main.bvm"));
 
-    if (args.hasArg("run")) {
-        normalRun(std::string(args.getArg("run").value_or("main.blt")), OUT);
+    if (args.hasArg("build")) {
+        normalRun(std::string(args.getArg("build").value_or("main.blt")), OUT);
     }
 
     if (args.hasArg("debug")) {

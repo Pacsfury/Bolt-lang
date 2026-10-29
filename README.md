@@ -28,10 +28,10 @@ python build/build.py vm
 
 Currently, Bolt has five different modes of running code:
 
-1. run
+1. build
 
 ```bash
-bolt run in -o out
+bolt build in -o out
 ```
 Writes the bytecode
 
