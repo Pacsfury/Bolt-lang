@@ -22,6 +22,7 @@ struct BinaryOp {
 struct VarDecl {
     NodeId initializer;
     int name_index;
+    bool isconst = false;
 };
 
 struct WriteNode {

@@ -4,8 +4,6 @@
 
 #include "tokens.hpp"
 
-std::unordered_map<std::string, int> keyword_mapping = {{"var", 0}, {"write", 0}};
-
 std::vector<Token> tokenize(const std::string& src) {
     std::vector<Token> result;
     size_t i = 0;
@@ -82,6 +80,8 @@ std::vector<Token> tokenize(const std::string& src) {
                 t.type = tokens::var;
             } else if (view == "write") {
                 t.type = tokens::write;
+            } else if (view == "const") {
+                t.type = tokens::constant;
             } else if (token_len >= 2 && (view.front() == view.back()) &&
                        (view.front() == '"' || view.front() == '\'')) {
                 if (token_len == 3) {  // '|" + char + '|"
