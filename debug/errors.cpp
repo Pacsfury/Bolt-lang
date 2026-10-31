@@ -10,4 +10,4 @@ void throwError(std::string msg) {
 
 void throwWarning(std::string msg) { std::cerr << "\033[33mWarning!\n" << msg << "\n\033[0m"; }
 
-void throwInfo(std::string msg) { std::cerr << "\033[36mInformation:\n" << msg << "\n\033[0m"; }
+void throwInfo(std::string msg) { std::cout << "\033[36mInformation:\n" << msg << "\n\033[0m"; }

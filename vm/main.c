@@ -4,7 +4,12 @@
 
 #include <inttypes.h>
 #include <stdint.h>
+#include <string.h>
 #include <stdio.h>
+
+#include "vector.h"
+#include "executor.h"
+#include "errors.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -50,21 +55,13 @@ static uint64_t elapsed_nanoseconds(TimerPoint start, TimerPoint end) {
 #endif
 
 static void report_timer_error(const char* operation) {
-#ifdef _WIN32
-    fprintf(stderr, "%s failed (Windows error %lu).\n", operation,
-            (unsigned long)GetLastError());
-#else
-    perror(operation);
-#endif
+    throwError(strcat("BVM Timer Error: Failed operation '", operation, "'."));
 }
-
-#include "vector.h"
-#include "executor.h"
 
 int main(void) {
     FILE* file = fopen("main.bvm", "rb");
     if (!file) {
-        fprintf(stderr, "BVM File Error: Could't open 'main.bvm'\n");
+        throwError("BVM File Error: Could't open 'main.bvm'");
         return 1;
     }
 
@@ -73,14 +70,14 @@ int main(void) {
     fseek(file, 0, SEEK_SET);
 
     if (file_size <= 0) {
-        fprintf(stderr, "BVM File Error: Blank or unvalid file\n");
+        throwError("BVM File Error: Blank or unvalid file");
         fclose(file);
         return 1;
     }
 
     uint8_t* bytecode = (uint8_t*)malloc(file_size);
     if (!bytecode) {
-        fprintf(stderr, "BVM Memory Error: Missing space for loading bytecode\n");
+        throwError("BVM Memory Error: Missing space for loading bytecode");
         fclose(file);
         return 1;
     }
@@ -89,7 +86,7 @@ int main(void) {
     fclose(file);
 
     if (bytes_read != (size_t)file_size) {
-        fprintf(stderr, "BVM File Error: couln't read file content\n");
+        throwError("BVM File Error: couln't read file content");
         free(bytecode);
         return 1;
     }
@@ -99,7 +96,7 @@ int main(void) {
 
     const uint8_t* code = bytecode;
     if (read_int(&code) != 1112493140) /* Does it start with BOLT? */ {
-        fprintf(stderr, "BVM Syntax Error: Missing 'BOLT' at file start\n");
+        throwError("BVM Syntax Error: Missing 'BOLT' at file start\n");
         free_stack(&stack);
         free(bytecode);
         return 1;
