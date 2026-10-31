@@ -16,6 +16,8 @@ void checkAST(const AST& ast) {
 
                 if constexpr (std::is_same_v<T, VarDecl>) {  // Structure checked by astgen already
                     registervar(ast.strings[value.name_index], value.isconst);
+                } else if constexpr (std::is_same_v<T, VarChange>) {  // Structure checked by astgen already
+                    checkAssignment(ast.strings[value.name_index]);
                 }
             },
             n.data);

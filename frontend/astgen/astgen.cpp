@@ -69,6 +69,24 @@ AST createAST(std::vector<Token> tokens) {
 
                 break;
             }
+            case tokens::identifier: {
+                Token name_token = state.consume();
+
+                if (state.peek().type != tokens::equal) {
+                    throwError("Bolt Syntax Error: expected '=' after variable name");
+                }
+                state.consume(); // consume '='
+
+                VarChange varchange{parse_expression(state, ast), ast.string_to_index.at(name_token.value)};
+                ast.add_node(Node{varchange});
+
+                if (state.peek().type != tokens::semi) {
+                    throwError("Bolt Syntax Error: expected ';' after statement");
+                }
+                state.consume(); // consume ';'
+
+                break;
+            }
             case tokens::write: {
                 state.consume(); // consume 'write'
                 if (state.peek().type != tokens::c_str && state.peek().type != tokens::c_char) {

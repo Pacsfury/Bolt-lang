@@ -25,12 +25,17 @@ struct VarDecl {
     bool isconst = false;
 };
 
+struct VarChange {
+    NodeId initializer;
+    int name_index;
+};
+
 struct WriteNode {
     std::string str;
 };
 
 struct Node {
-    std::variant<Literal, BinaryOp, VarDecl, WriteNode> data;
+    std::variant<Literal, BinaryOp, VarDecl, WriteNode, VarChange> data;
 };
 
 struct AST {

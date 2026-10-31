@@ -21,6 +21,6 @@ void checkAssignment(const std::string& name) {
     }
     
     if (it->second) { // Is it const'
-        throwError("Bolt Compile Error: Cannot assign to constant '" + name + "'");
+        throwError("Bolt Compile Error: Cannot modify constant '" + name + "'");
     }
 }
