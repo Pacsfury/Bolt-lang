@@ -20,7 +20,7 @@ void checkAssignment(const std::string& name) {
         throwError("Bolt Compile Error: Variable '" + name + "' is used before declaration");
     }
     
-    if (it->second) { // Is it const'
+    if (it->second) { // Is it const?
         throwError("Bolt Compile Error: Cannot modify constant '" + name + "'");
     }
 }
