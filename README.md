@@ -7,6 +7,7 @@ A language made to be fast and simple.
 ---
 
 ## Building with Python
+Cmake is coming soon!
 
 1. Set up an `.env` file
 
