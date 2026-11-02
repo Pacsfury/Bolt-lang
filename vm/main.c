@@ -54,9 +54,13 @@ static uint64_t elapsed_nanoseconds(TimerPoint start, TimerPoint end) {
 }
 #endif
 
-static void report_timer_error(const char* operation) {
-    throwError(strcat("BVM Timer Error: Failed operation '", operation, "'."));
+void report_timer_error(const char* operation) {
+    char buffer[256]; 
+    
+    snprintf(buffer, sizeof(buffer), "BVM Timer Error: Failed operation '%s'.", operation);
+    throwError(buffer);
 }
+
 
 int main(void) {
     FILE* file = fopen("main.bvm", "rb");
