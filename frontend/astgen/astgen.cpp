@@ -17,6 +17,11 @@ inline NodeId parse_expression(ParserState& state, AST& ast) {
         Literal lit{(int)(current.value[0])};
         return ast.add_node(Node{lit});
     }
+    else if (current.type == tokens::c_str) {
+        state.consume();
+        Literal lit{(int)(ast.add_string(current.value))};
+        return ast.add_node(Node{lit});
+    }
 
     throwError("Bolt Syntax Error: unrecognized operation");
     return 1;
