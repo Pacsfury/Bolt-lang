@@ -6,24 +6,25 @@ A language made to be fast and simple.
 
 ---
 
-## Building with Python
-Cmake is coming soon!
+## Building with CMake
 
-1. Set up an `.env` file
-
-```env
-CPP_COMPILER="your-cpp-compiler"
-C_COMPILER="c_compiler"
-```
-
-2. Run Python to compile
-
-> There is no backend yet, so you can't compile backend
+Build the language compiler and VM independently from the repository root:
 
 ```bash
-python build/build.py frontend
-python build/build.py vm
+cmake -S . -B cmake-build
+cmake --build cmake-build --target bolt
+cmake --build cmake-build --target bvm
 ```
+
+The `frontend` and `backend` libraries can also be built on their own:
+
+```bash
+cmake --build cmake-build --target frontend
+cmake --build cmake-build --target backend
+```
+
+The executables are written to the build directory (`bolt`/`bolt.exe` and
+`bvm`/`bvm.exe`). The VM reads `main.bvm` from its current working directory.
 
 ## Run modes
 

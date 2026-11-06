@@ -3,3 +3,4 @@ __pycache__/
 *.obj
 *.ilk
 *.env
+cmake-build*/

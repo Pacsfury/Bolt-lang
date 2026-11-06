@@ -22,14 +22,12 @@ void emit_u32(std::vector<uint8_t>& out, uint32_t v) {
 std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST& ast, const std::string& path) {
     size_t cpoolidx = 0;
     std::vector<uint8_t> bytecode;
-    std::vector<uint8_t> header;
     std::vector<uint8_t> cpool;
     bytecode.reserve(ast.nodes.size() * 8);
-    header.reserve(ast.nodes.size() / 8);
-    emit_u8(header, 'B');
-    emit_u8(header, 'O');
-    emit_u8(header, 'L');
-    emit_u8(header, 'T');
+    emit_u8(bytecode, 'B');
+    emit_u8(bytecode, 'O');
+    emit_u8(bytecode, 'L');
+    emit_u8(bytecode, 'T');
 
     for (const auto& node : ast.nodes) {
         std::visit(
@@ -56,6 +54,5 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
     }
 
     emit_u8(bytecode, OP_HALT);
-    header.insert(header.end(), bytecode.begin(), bytecode.end());
-    return {header, cpool};
+    return {bytecode, cpool};
 }

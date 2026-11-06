@@ -1,0 +1,34 @@
+cmake_minimum_required(VERSION 3.16)
+
+project(Bolt LANGUAGES C CXX)
+
+add_library(frontend STATIC
+    debug/errors.cpp
+    debug/print.cpp
+    frontend/astgen/astgen.cpp
+    frontend/checker/structure.cpp
+    frontend/checker/variables.cpp
+    frontend/lexer/tokens.cpp
+)
+target_compile_features(frontend PUBLIC cxx_std_17)
+
+add_library(backend STATIC
+    backend/codegen/codegen.cpp
+)
+target_compile_features(backend PUBLIC cxx_std_17)
+target_link_libraries(backend PUBLIC frontend)
+
+add_executable(bolt
+    main.cpp
+    runner/arguments.cpp
+    runner/runmodes.cpp
+)
+target_compile_features(bolt PRIVATE cxx_std_17)
+target_link_libraries(bolt PRIVATE backend)
+
+add_executable(bvm
+    vm/errors.c
+    vm/executor.c
+    vm/main.c
+)
+target_compile_features(bvm PRIVATE c_std_17)
