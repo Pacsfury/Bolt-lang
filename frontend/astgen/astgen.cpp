@@ -31,6 +31,16 @@ inline NodeId parse_expression(ParserState& state, AST& ast) {
 AST createAST(std::vector<Token> tokens) {
     AST ast;
     ParserState state{0, tokens};
+    std::unordered_map<std::string, std::string> string_values;
+
+    auto remember_string_value = [&](const std::string& name, const Token& value) {
+        if (value.type == tokens::c_str || value.type == tokens::c_char) {
+            ast.add_string(value.value);
+            string_values[name] = value.value;
+        } else {
+            string_values.erase(name);
+        }
+    };
 
     while (state.peek().type != tokens::eof) {
         Token actual = state.peek();
@@ -45,7 +55,9 @@ AST createAST(std::vector<Token> tokens) {
                 }
                 state.consume(); // consume '='
 
+                Token initializer = state.peek();
                 VarDecl vardecl{parse_expression(state, ast), ast.add_string(name_token.value)};
+                remember_string_value(name_token.value, initializer);
                 ast.add_node(Node{vardecl});
 
                 if (state.peek().type != tokens::semi) {
@@ -64,7 +76,9 @@ AST createAST(std::vector<Token> tokens) {
                 }
                 state.consume(); // consume '='
 
+                Token initializer = state.peek();
                 VarDecl vardecl{parse_expression(state, ast), ast.add_string(name_token.value), true};
+                remember_string_value(name_token.value, initializer);
                 ast.add_node(Node{vardecl});
 
                 if (state.peek().type != tokens::semi) {
@@ -82,7 +96,9 @@ AST createAST(std::vector<Token> tokens) {
                 }
                 state.consume(); // consume '='
 
+                Token initializer = state.peek();
                 VarChange varchange{parse_expression(state, ast), ast.string_to_index.at(name_token.value)};
+                remember_string_value(name_token.value, initializer);
                 ast.add_node(Node{varchange});
 
                 if (state.peek().type != tokens::semi) {
@@ -94,11 +110,26 @@ AST createAST(std::vector<Token> tokens) {
             }
             case tokens::write: {
                 state.consume(); // consume 'write'
-                if (state.peek().type != tokens::c_str && state.peek().type != tokens::c_char) {
-                    throwError("Bolt Syntax Error: expected string or char after 'write'");
+                if (state.peek().type != tokens::c_str && state.peek().type != tokens::c_char && state.peek().type != tokens::identifier) {
+                    throwError("Bolt Syntax Error: expected string, char or variable name after 'write'");
                 }
-                WriteNode node{state.consume().value};
+                Token output = state.consume();
+                std::string node_value;
+
+                if (output.type == tokens::identifier) {
+                    auto value = string_values.find(output.value);
+                    if (value == string_values.end() ||
+                        ast.string_to_index.find(value->second) == ast.string_to_index.end()) {
+                        throwError("Bolt Compile Error: variable '" + output.value + "' does not contain a string or char");
+                    }
+                    node_value = value->second;
+                } else {
+                    node_value = output.value;
+                }
+
+                WriteNode node{node_value};
                 ast.add_node(Node{node});
+
 
                 if (state.peek().type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
