@@ -469,6 +469,19 @@ int run_embedded_package_impl(const fs::path& executable_path) {
         throw std::runtime_error("Could not reserve an extraction directory.");
     }
 
+    struct ExtractionCleanup {
+        const fs::path& path;
+
+        ~ExtractionCleanup() {
+            std::error_code cleanup_error;
+            fs::remove_all(path, cleanup_error);
+            if (cleanup_error) {
+                std::cerr << "Warning: could not remove temporary package folder "
+                          << path.string() << ": " << cleanup_error.message() << '\n';
+            }
+        }
+    } cleanup{extraction_dir};
+
     extract_package_zip(zip, extraction_dir);
     const fs::path vm_path = extraction_dir / L"vm.exe";
     std::wstring command_line = L"\"" + vm_path.wstring() + L"\"";
@@ -480,7 +493,12 @@ int run_embedded_package_impl(const fs::path& executable_path) {
         throw std::runtime_error("Could not start vm.exe. Windows error: " + std::to_string(GetLastError()));
     }
     CloseHandle(process.hThread);
-    WaitForSingleObject(process.hProcess, INFINITE);
+    if (WaitForSingleObject(process.hProcess, INFINITE) != WAIT_OBJECT_0) {
+        const DWORD error_code = GetLastError();
+        CloseHandle(process.hProcess);
+        throw std::runtime_error("Could not wait for VM to finish. Windows error: " +
+                                 std::to_string(error_code));
+    }
     DWORD exit_code = 1;
     if (!GetExitCodeProcess(process.hProcess, &exit_code)) {
         const DWORD error_code = GetLastError();

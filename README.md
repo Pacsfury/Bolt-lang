@@ -36,7 +36,7 @@ bolt -C BVM-CPOOL -B main.bvm -vm vm/bvm.exe -o BoltProgram.exe
 ```
 
 When opened, the package extracts to a clearly named temporary folder and
-starts the VM automatically. The extracted files are left in that folder.
+starts the VM automatically. The temporary folder is removed after the VM exits.
 
 ## Run modes
 
