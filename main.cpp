@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (args.hasArg("package")) {
-        create_package_executable(std::string(args.getArg("-C").value_or("")), std::string(args.getArg("-B").value_or("")), std::string(args.getArg("-vm").value_or("")), std::string(args.getArg("-o").value_or("")), argv[0]);
+        create_package_executable(std::string(args.getArg("-C").value_or("BVM-CPOOL")), std::string(args.getArg("-B").value_or("main.bvm")), std::string(args.getArg("-vm").value_or("vm/vm")), std::string(args.getArg("-o").value_or("out/program")), argv[0]);
     }
 
     return 0;
