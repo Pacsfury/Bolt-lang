@@ -22,8 +22,10 @@ add_executable(bolt
     main.cpp
     runner/arguments.cpp
     runner/runmodes.cpp
+    packager/packager.cpp
 )
 target_compile_features(bolt PRIVATE cxx_std_17)
+target_compile_definitions(bolt PRIVATE BOLT_LIBRARY_BUILD)
 target_link_libraries(bolt PRIVATE backend)
 
 add_executable(bvm

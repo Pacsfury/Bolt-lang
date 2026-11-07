@@ -26,6 +26,18 @@ cmake --build cmake-build --target backend
 The executables are written to the build directory (`bolt`/`bolt.exe` and
 `bvm`/`bvm.exe`). The VM reads `main.bvm` from its current working directory.
 
+To package a program as one self-extracting Windows executable, run
+`bolt packace` from the repository root. By default it reads `BVM-CPOOL`,
+`main.bvm`, and `vm/bvm.exe`, and creates `BoltProgram.exe`. You can also pass
+the four paths in that order:
+
+```bash
+bolt -C BVM-CPOOL -B main.bvm -vm vm/bvm.exe -o BoltProgram.exe
+```
+
+When opened, the package extracts to a clearly named temporary folder and
+starts the VM automatically. The extracted files are left in that folder.
+
 ## Run modes
 
 Currently, Bolt has five different modes of running code:
