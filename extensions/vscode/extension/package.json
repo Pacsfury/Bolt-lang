@@ -1,0 +1,33 @@
+{
+  "name": "bolt-lang-support",
+  "displayName": "Bolt Support",
+  "version": "0.0.1",
+  "publisher": "bolt-lang",
+  "galleryFlags": ["Public"],
+  "private":false,
+  "description": "Smart language support for the Bolt programming language",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "bolt",
+        "extensions": [".blt"],
+        "aliases": ["Bolt", "bolt"],
+        "icon": {
+          "light": "./icons/logo.svg",
+          "dark": "./icons/logo.svg"
+        },
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "bolt",
+        "scopeName": "source.blt",
+        "path": "./bolt.tmLanguage.json"
+      }
+    ]
+  }
+}
