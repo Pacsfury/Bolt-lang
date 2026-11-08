@@ -79,4 +79,4 @@ struct ParserState {
 
 NodeId parse_expression(ParserState& state, AST& ast);
 
-AST createAST(std::vector<Token> tokens);
+AST createAST(const std::vector<Token>& tokens);

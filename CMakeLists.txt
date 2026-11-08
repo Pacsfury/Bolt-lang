@@ -2,6 +2,14 @@ cmake_minimum_required(VERSION 3.16)
 
 project(Bolt LANGUAGES C CXX)
 
+function(apply_release_optimizations target)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:/O2>)
+    else()
+        target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:-O3>)
+    endif()
+endfunction()
+
 add_library(frontend STATIC
     debug/errors.cpp
     debug/print.cpp
@@ -11,12 +19,14 @@ add_library(frontend STATIC
     frontend/lexer/tokens.cpp
 )
 target_compile_features(frontend PUBLIC cxx_std_17)
+apply_release_optimizations(frontend)
 
 add_library(backend STATIC
     backend/codegen/codegen.cpp
 )
 target_compile_features(backend PUBLIC cxx_std_17)
 target_link_libraries(backend PUBLIC frontend)
+apply_release_optimizations(backend)
 
 add_executable(bolt
     main.cpp
@@ -27,6 +37,7 @@ add_executable(bolt
 target_compile_features(bolt PRIVATE cxx_std_17)
 target_compile_definitions(bolt PRIVATE BOLT_LIBRARY_BUILD)
 target_link_libraries(bolt PRIVATE backend)
+apply_release_optimizations(bolt)
 
 add_executable(bvm
     vm/errors.c
