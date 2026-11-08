@@ -34,3 +34,11 @@ add_executable(bvm
     vm/main.c
 )
 target_compile_features(bvm PRIVATE c_std_17)
+
+if(MSVC)
+    target_compile_options(bvm PRIVATE $<$<CONFIG:Release>:/Os /GL /GF /Gw>)
+    target_link_options(bvm PRIVATE $<$<CONFIG:Release>:/LTCG /OPT:REF /OPT:ICF>)
+else()
+    target_compile_options(bvm PRIVATE $<$<CONFIG:Release>:-Os -fdata-sections -ffunction-sections>)
+    target_link_options(bvm PRIVATE $<$<CONFIG:Release>:-Wl,--gc-sections -s>)
+endif()
