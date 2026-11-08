@@ -22,6 +22,7 @@ namespace fs = std::filesystem;
 namespace {
 
 constexpr std::array<char, 8> kSfxMagic = {'B', 'O', 'L', 'T', 'S', 'F', 'X', '1'};
+constexpr std::array<char, 8> kAppendMagic = {'B', 'O', 'L', 'T', 'P', 'K', 'G', '1'};
 
 fs::path current_executable_path() {
 #ifdef _WIN32
@@ -211,106 +212,91 @@ namespace {
 bool create_package_executable_impl(const std::string& cpool_path, const std::string& bytecode_path,
                                     const std::string& vm_path, const std::string& output_exe_path,
                                     const fs::path& builder_path) {
+    static_cast<void>(builder_path);
     const fs::path output_path = fs::absolute(output_exe_path).lexically_normal();
-    if (output_path == fs::absolute(builder_path).lexically_normal()) {
-        std::cerr << "Output executable must not overwrite the package builder.\n";
+    const fs::path cpool_input = fs::absolute(cpool_path).lexically_normal();
+    const fs::path bytecode_input = fs::absolute(bytecode_path).lexically_normal();
+    const fs::path vm_input = fs::absolute(vm_path).lexically_normal();
+    if (output_path == cpool_input || output_path == bytecode_input || output_path == vm_input) {
+        std::cerr << "Output executable must not overwrite an input file.\n";
         return false;
     }
 
-    fs::path build_dir;
     std::error_code error;
-    const fs::path temp_root = fs::temp_directory_path(error);
+    const std::uintmax_t vm_size = fs::file_size(vm_input, error);
     if (error) {
-        std::cerr << "Could not locate the temporary directory: " << error.message() << '\n';
+        std::cerr << "Could not determine VM size: " << error.message() << '\n';
         return false;
     }
-
-#ifdef _WIN32
-    const unsigned long process_id = GetCurrentProcessId();
-#else
-    const unsigned long process_id = 0;
-#endif
-    for (unsigned int attempt = 0; attempt < 100; ++attempt) {
-        build_dir = temp_root / ("BoltPackageBuild-" + std::to_string(process_id) + "-" + std::to_string(attempt));
-        if (fs::create_directory(build_dir, error)) {
-            break;
-        }
-        if (error && error != std::errc::file_exists) {
-            std::cerr << "Could not create temporary build directory: " << error.message() << '\n';
-            return false;
-        }
-        error.clear();
-        build_dir.clear();
-    }
-    if (build_dir.empty()) {
-        std::cerr << "Could not reserve a temporary build directory.\n";
-        return false;
-    }
-
-    const fs::path zip_path = build_dir / "package.zip";
-    if (!create_package_zip(cpool_path, bytecode_path, vm_path, zip_path.string())) {
-        fs::remove_all(build_dir, error);
-        return false;
-    }
-
-    fs::copy_file(builder_path, output_path, fs::copy_options::overwrite_existing, error);
+    const std::uintmax_t cpool_size = fs::file_size(cpool_input, error);
     if (error) {
-        std::cerr << "Could not create output executable: " << error.message() << '\n';
-        fs::remove_all(build_dir, error);
+        std::cerr << "Could not determine CPOOL size: " << error.message() << '\n';
+        return false;
+    }
+    const std::uintmax_t bytecode_size = fs::file_size(bytecode_input, error);
+    if (error) {
+        std::cerr << "Could not determine bytecode size: " << error.message() << '\n';
         return false;
     }
 
-    std::ifstream zip(zip_path, std::ios::binary);
+    constexpr std::uintmax_t max_u64 = std::numeric_limits<std::uint64_t>::max();
+    if (vm_size > max_u64 || cpool_size > max_u64 || bytecode_size > max_u64 ||
+        vm_size > max_u64 - cpool_size || vm_size + cpool_size > max_u64 - bytecode_size) {
+        std::cerr << "Package data is too large.\n";
+        return false;
+    }
+
+    fs::copy_file(vm_input, output_path, fs::copy_options::overwrite_existing, error);
+    if (error) {
+        std::cerr << "Could not copy VM to output executable: " << error.message() << '\n';
+        return false;
+    }
+
+    std::ifstream cpool(cpool_input, std::ios::binary);
+    std::ifstream bytecode(bytecode_input, std::ios::binary);
     std::ofstream output(output_path, std::ios::binary | std::ios::app);
-    if (!zip.is_open() || !output.is_open()) {
-        std::cerr << "Could not open package files for writing.\n";
-        fs::remove(output_path, error);
-        fs::remove_all(build_dir, error);
+    if (!cpool.is_open() || !bytecode.is_open() || !output.is_open()) {
+        std::cerr << "Could not open package files for appending.\n";
         return false;
     }
 
-    zip.seekg(0, std::ios::end);
-    const std::streamoff zip_size = zip.tellg();
-    if (zip_size < 0) {
-        std::cerr << "Could not determine package size.\n";
-        fs::remove(output_path, error);
-        fs::remove_all(build_dir, error);
-        return false;
-    }
-    zip.seekg(0, std::ios::beg);
-    std::array<char, 64 * 1024> buffer{};
-    while (zip) {
-        zip.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
-        const std::streamsize count = zip.gcount();
-        if (count > 0) {
-            output.write(buffer.data(), count);
+    const auto append_file = [&output](std::ifstream& input, std::uint64_t expected_size) {
+        std::array<char, 64 * 1024> buffer{};
+        std::uint64_t total = 0;
+        while (input) {
+            input.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+            const std::streamsize count = input.gcount();
+            if (count > 0) {
+                if (static_cast<std::uint64_t>(count) > expected_size - total) {
+                    return false;
+                }
+                output.write(buffer.data(), count);
+                total += static_cast<std::uint64_t>(count);
+            }
         }
-    }
-    if (!zip.eof() || !output) {
-        std::cerr << "Could not append package data to the executable.\n";
-        zip.close();
-        output.close();
-        fs::remove(output_path, error);
-        fs::remove_all(build_dir, error);
+        return input.eof() && !input.bad() && total == expected_size && static_cast<bool>(output);
+    };
+
+    if (!append_file(cpool, static_cast<std::uint64_t>(cpool_size)) ||
+        !append_file(bytecode, static_cast<std::uint64_t>(bytecode_size))) {
+        std::cerr << "Could not append CPOOL or bytecode data.\n";
         return false;
     }
 
-    output.write(kSfxMagic.data(), static_cast<std::streamsize>(kSfxMagic.size()));
-    write_u64(output, static_cast<std::uint64_t>(zip_size));
+    const std::uint64_t cpool_offset = static_cast<std::uint64_t>(vm_size);
+    const std::uint64_t bytecode_offset = cpool_offset + static_cast<std::uint64_t>(cpool_size);
+    output.write(kAppendMagic.data(), static_cast<std::streamsize>(kAppendMagic.size()));
+    write_u64(output, cpool_offset);
+    write_u64(output, static_cast<std::uint64_t>(cpool_size));
+    write_u64(output, bytecode_offset);
+    write_u64(output, static_cast<std::uint64_t>(bytecode_size));
     output.close();
-    zip.close();
     if (!output) {
         std::cerr << "Could not finish writing output executable.\n";
-        fs::remove(output_path, error);
-        fs::remove_all(build_dir, error);
         return false;
     }
 
-    fs::remove_all(build_dir, error);
-    if (error) {
-        std::cerr << "Warning: could not remove temporary build directory: " << error.message() << '\n';
-    }
-    std::cout << "Self-extracting executable created: " << output_path.string() << '\n';
+    std::cout << "Append executable created: " << output_path.string() << '\n';
     return true;
 }
 
