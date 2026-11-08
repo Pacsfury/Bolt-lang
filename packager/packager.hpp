@@ -3,10 +3,15 @@
 #include <filesystem>
 #include <string>
 
-bool create_package_executable(const std::string& cpool_path,
-                               const std::string& bytecode_path,
-                               const std::string& vm_path,
-                               const std::string& output_exe_path,
-                               const std::filesystem::path& builder_path);
+#ifdef _WIN32
+bool create_package_executable(const std::string& cpool_path = "BVM-CPOOL",
+                               const std::string& bytecode_path = "main.bvm",
+                               const std::string& vm_path = "vm/vm.exe",
+                               const std::string& output_exe_path = "OUTPUT.exe");
 
-int run_embedded_package(const std::filesystem::path& executable_path);
+#else
+bool create_package_executable(const std::string& cpool_path = "BVM-CPOOL",
+                               const std::string& bytecode_path = "main.bvm",
+                               const std::string& vm_path = "vm/vm",
+                               const std::string& output_exe_path = "OUTPUT");
+#endif

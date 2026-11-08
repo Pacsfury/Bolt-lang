@@ -5,11 +5,6 @@
 #include "packager/packager.hpp"
 
 int main(int argc, char* argv[]) {
-    const int package_exit_code = run_embedded_package(argv[0]);
-    if (package_exit_code >= 0) {
-        return package_exit_code;
-    }
-
     ArgsContext args({argc, argv});
     const static std::string OUTPUT = std::string(args.getArg("-o").value_or("main.bvm"));
 
@@ -34,7 +29,11 @@ int main(int argc, char* argv[]) {
     }
 
     if (args.hasArg("package")) {
-        create_package_executable(std::string(args.getArg("-C").value_or("BVM-CPOOL")), std::string(args.getArg("-B").value_or("main.bvm")), std::string(args.getArg("-vm").value_or("vm/vm")), std::string(args.getArg("-o").value_or("out/program")), argv[0]);
+        #ifdef _WIN32
+            create_package_executable(std::string(args.getArg("-C").value_or("BVM-CPOOL")), std::string(args.getArg("-B").value_or("main.bvm")), std::string(args.getArg("-vm").value_or("vm/bvm.exe")), std::string(args.getArg("-o").value_or("program.exe")));
+        #else
+            create_package_executable(std::string(args.getArg("-C").value_or("BVM-CPOOL")), std::string(args.getArg("-B").value_or("main.bvm")), std::string(args.getArg("-vm").value_or("vm/bvm")), std::string(args.getArg("-o").value_or("program")));
+        #endif
     }
 
     return 0;

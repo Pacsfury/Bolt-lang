@@ -28,12 +28,14 @@ The executables are written to the build directory (`bolt`/`bolt.exe` and
 
 To package a program as one self-extracting executable, run
 `bolt packace` from the repository root. By default it reads `BVM-CPOOL`,
-`main.bvm`, and `vm/bvm.exe`, and creates `BoltProgram.exe`. You can also pass
+`main.bvm`, and `vm/bvm.exe`, and creates `program.exe`. You can also pass
 the four paths in that order:
 
 ```bash
-bolt -C BVM-CPOOL -B main.bvm -vm vm/bvm.exe -o BoltProgram.exe
+bolt package -C BVM-CPOOL -B main.bvm -vm vm/bvm.exe -o BoltProgram.exe
 ```
+
+You can just run `bolt package` if the paths match these: `BVM-CPOOL`, `main.bvm`, `vm/bvm`/`vm/bvm.exe`, `program`/`program.exe`
 
 The executable is the vm executable with the other data appended to it.
 
