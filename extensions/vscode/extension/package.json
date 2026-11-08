@@ -3,9 +3,12 @@
   "displayName": "Bolt Support",
   "version": "0.0.1",
   "publisher": "bolt-lang",
-  "galleryFlags": ["Public"],
-  "private":false,
+  "galleryFlags": [
+    "Public"
+  ],
+  "private": false,
   "description": "Smart language support for the Bolt programming language",
+  "main": "./extension.js",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -13,8 +16,13 @@
     "languages": [
       {
         "id": "bolt",
-        "extensions": [".blt"],
-        "aliases": ["Bolt", "bolt"],
+        "extensions": [
+          ".blt"
+        ],
+        "aliases": [
+          "Bolt",
+          "bolt"
+        ],
         "icon": {
           "light": "./icons/logo.svg",
           "dark": "./icons/logo.svg"
@@ -28,6 +36,62 @@
         "scopeName": "source.blt",
         "path": "./bolt.tmLanguage.json"
       }
-    ]
+    ],
+    "taskDefinitions": [
+      {
+        "type": "bolt",
+        "required": [
+          "file"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "Bolt source file to check"
+          }
+        }
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "bolt-check",
+        "owner": "bolt",
+        "fileLocation": "absolute",
+        "pattern": {
+          "regexp": "^(.*\\.blt): (error): (.*)$",
+          "file": 1,
+          "severity": 2,
+          "message": 3
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "bolt.check",
+        "title": "Bolt: Run Check"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "bolt.check",
+          "when": "editorLangId == bolt"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Bolt",
+      "properties": {
+        "bolt.executable": {
+          "type": "string",
+          "default": "bolt",
+          "description": "Path to the Bolt compiler executable, or 'bolt' to find it in the workspace or PATH."
+        },
+        "bolt.checkOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically check Bolt files when they are saved."
+        }
+      }
+    }
   }
 }

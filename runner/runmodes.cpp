@@ -160,6 +160,8 @@ void run(std::string code, std::string out) {
 }
 
 void checkRun(std::string file) {
+    setErrorFile(file);
+
     std::ifstream input(file);
     if (!input.is_open()) {
         throwError("Bolt File Error: Could't open '" + file + "'");
