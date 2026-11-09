@@ -2,11 +2,50 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+
+extern const uint8_t* bolt_embedded_cpool_data;
+extern size_t bolt_embedded_cpool_size;
+void cpool_set_embedded(const uint8_t* data, size_t size);
 
 static inline char* cpool_read(int a) {
     if (a <= 0) {
         fprintf(stderr, "BVM CPOOL Error: line number must be positive.\n");
         return NULL;
+    }
+
+    if (bolt_embedded_cpool_data != NULL) {
+        size_t start = 0;
+        for (int line = 1; line < a; ++line) {
+            while (start < bolt_embedded_cpool_size && bolt_embedded_cpool_data[start] != '\n')
+                ++start;
+            if (start == bolt_embedded_cpool_size) {
+                fprintf(stderr, "BVM CPOOL Error: line %d does not exist.\n", a);
+                return NULL;
+            }
+            ++start;
+        }
+        if (start >= bolt_embedded_cpool_size) {
+            fprintf(stderr, "BVM CPOOL Error: line %d does not exist.\n", a);
+            return NULL;
+        }
+
+        size_t end = start;
+        while (end < bolt_embedded_cpool_size && bolt_embedded_cpool_data[end] != '\n')
+            ++end;
+        if (end > start && bolt_embedded_cpool_data[end - 1] == '\r')
+            --end;
+
+        size_t length = end - start;
+        char* contents = malloc(length + 1);
+        if (!contents) {
+            fprintf(stderr, "BVM Memory Error: couldn't allocate CPOOL line.\n");
+            return NULL;
+        }
+        if (length > 0)
+            memcpy(contents, bolt_embedded_cpool_data + start, length);
+        contents[length] = '\0';
+        return contents;
     }
 
     FILE* file = fopen("BVM-CPOOL", "rb");

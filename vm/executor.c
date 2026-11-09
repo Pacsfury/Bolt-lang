@@ -8,6 +8,14 @@
 
 typedef char compile_time_assert_opcodes[(OP_COUNT <= 256) ? 1 : -1];
 
+const uint8_t* bolt_embedded_cpool_data = NULL;
+size_t bolt_embedded_cpool_size = 0;
+
+void cpool_set_embedded(const uint8_t* data, size_t size) {
+    bolt_embedded_cpool_data = data;
+    bolt_embedded_cpool_size = size;
+}
+
 void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
     const uint8_t* ip = code;
     DynamicStack dataStack;
@@ -110,6 +118,7 @@ void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
     CASE(PRINT) {
         char* data = cpool_read(read_int(&ip));
         puts(data);
+        free(data);
         NEXT();
     }
 

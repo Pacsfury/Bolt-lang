@@ -131,13 +131,10 @@ write "hello, world!";
 bolt run main.blt -o main.bvm
 ```
 
-3. Move the resulting files (`main.bvm` and `BVM-CPOOL`) to the `vm/` folder
-
-4. Run the bytecode
+3. Package
 
 ```bash
-cd vm
-bvm
+bolt package -vm vm/bvm.exe -o program.exe # replace paths!
 ```
 
 You will see something like this:
@@ -148,4 +145,4 @@ VM Execution time: 130000 nanoseconds.
 Or: 0.1300 ms.
 ```
 
-> Note: the vm uses `puts` and reads the CPOOL file, so using write is kinda slow
+> Note: the vm uses `puts` and reads the CPOOL file, so using write is kinda slow. For raw speed, package your code to a standalone executable!
