@@ -11,13 +11,11 @@ inline NodeId parse_expression(ParserState& state, AST& ast) {
         state.consume();
         Literal lit{std::stoi(current.value)};
         return ast.add_node(Node{lit});
-    } 
-    else if (current.type == tokens::c_char) {
+    } else if (current.type == tokens::c_char) {
         state.consume();
         Literal lit{(int)(current.value[0])};
         return ast.add_node(Node{lit});
-    }
-    else if (current.type == tokens::c_str) {
+    } else if (current.type == tokens::c_str) {
         state.consume();
         Literal lit{(int)(ast.add_string(current.value))};
         return ast.add_node(Node{lit});
@@ -26,7 +24,6 @@ inline NodeId parse_expression(ParserState& state, AST& ast) {
     throwError("Bolt Syntax Error: unrecognized operation");
     return 1;
 }
-
 
 AST createAST(const std::vector<Token>& tokens) {
     AST ast;
@@ -47,13 +44,13 @@ AST createAST(const std::vector<Token>& tokens) {
 
         switch (actual.type) {
             case tokens::var: {
-                state.consume(); // consume 'var'
+                state.consume();  // consume 'var'
                 Token name_token = state.consume();
 
                 if (state.peek().type != tokens::equal) {
                     throwError("Bolt Syntax Error: expected '=' after variable name");
                 }
-                state.consume(); // consume '='
+                state.consume();  // consume '='
 
                 Token initializer = state.peek();
                 VarDecl vardecl{parse_expression(state, ast), ast.add_string(name_token.value)};
@@ -63,18 +60,18 @@ AST createAST(const std::vector<Token>& tokens) {
                 if (state.peek().type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
-                state.consume(); // consume ';'
+                state.consume();  // consume ';'
 
                 break;
             }
             case tokens::constant: {
-                state.consume(); // consume 'const'
+                state.consume();  // consume 'const'
                 Token name_token = state.consume();
 
                 if (state.peek().type != tokens::equal) {
                     throwError("Bolt Syntax Error: expected '=' after variable name");
                 }
-                state.consume(); // consume '='
+                state.consume();  // consume '='
 
                 Token initializer = state.peek();
                 VarDecl vardecl{parse_expression(state, ast), ast.add_string(name_token.value), true};
@@ -84,7 +81,7 @@ AST createAST(const std::vector<Token>& tokens) {
                 if (state.peek().type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
-                state.consume(); // consume ';'
+                state.consume();  // consume ';'
 
                 break;
             }
@@ -94,7 +91,7 @@ AST createAST(const std::vector<Token>& tokens) {
                 if (state.peek().type != tokens::equal) {
                     throwError("Bolt Syntax Error: expected '=' after variable name");
                 }
-                state.consume(); // consume '='
+                state.consume();  // consume '='
 
                 Token initializer = state.peek();
                 VarChange varchange{parse_expression(state, ast), ast.string_to_index.at(name_token.value)};
@@ -104,13 +101,14 @@ AST createAST(const std::vector<Token>& tokens) {
                 if (state.peek().type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
-                state.consume(); // consume ';'
+                state.consume();  // consume ';'
 
                 break;
             }
             case tokens::write: {
-                state.consume(); // consume 'write'
-                if (state.peek().type != tokens::c_str && state.peek().type != tokens::c_char && state.peek().type != tokens::identifier) {
+                state.consume();  // consume 'write'
+                if (state.peek().type != tokens::c_str && state.peek().type != tokens::c_char &&
+                    state.peek().type != tokens::identifier) {
                     throwError("Bolt Syntax Error: expected string, char or variable name after 'write'");
                 }
                 Token output = state.consume();
@@ -120,7 +118,8 @@ AST createAST(const std::vector<Token>& tokens) {
                     auto value = string_values.find(output.value);
                     if (value == string_values.end() ||
                         ast.string_to_index.find(value->second) == ast.string_to_index.end()) {
-                        throwError("Bolt Compile Error: variable '" + output.value + "' does not contain a string or char");
+                        throwError("Bolt Compile Error: variable '" + output.value +
+                                   "' does not contain a string or char");
                     }
                     node_value = value->second;
                 } else {
@@ -130,11 +129,10 @@ AST createAST(const std::vector<Token>& tokens) {
                 WriteNode node{node_value};
                 ast.add_node(Node{node});
 
-
                 if (state.peek().type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
-                state.consume(); // consume ';'
+                state.consume();  // consume ';'
 
                 break;
             }
