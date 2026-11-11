@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cctype>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -82,15 +84,20 @@ std::vector<Token> tokenize(const std::string& src) {
                 t.type = tokens::write;
             } else if (view == "const") {
                 t.type = tokens::constant;
-            } else if (token_len >= 2 && (view.front() == view.back()) &&
+            } else if (token_len >= 2 && view.front() == view.back() &&
                        (view.front() == '"' || view.front() == '\'')) {
-                if (token_len == 3) {  // '|" + char + '|"
+                if (token_len == 3) {  // '"' + char + '"'
                     t.type = tokens::c_char;
                 } else {
                     t.type = tokens::c_str;
                 }
                 t.value = src.substr(start + 1, token_len - 2);
 
+            } else if (std::all_of(view.begin(), view.end(), [](unsigned char c) {
+                           return std::isdigit(c) != 0;
+                       })) {
+                t.type = tokens::c_int;
+                t.value = std::string(view);
             } else {
                 t.type = tokens::identifier;
                 t.value = src.substr(start, token_len);
