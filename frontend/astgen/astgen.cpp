@@ -21,7 +21,7 @@ inline NodeId parse_expression(ParserState& state, AST& ast) {
         return ast.add_node(Node{lit});
     }
 
-    throwError("Bolt Syntax Error: unrecognized operation");
+    throwError("Bolt Syntax Error: unrecognized operation or value type");
     return 1;
 }
 
