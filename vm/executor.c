@@ -98,16 +98,32 @@ void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
 
     CASE(STORE) {
         int slot = read_int(&ip);
+        assert(slot >= 0);
         assert(sp > base);
+        while (UNLIKELY(dataStack.base + slot >= dataStack.limit)) {
+            expand_stack(&dataStack);
+        }
+        if (dataStack.base + slot >= dataStack.sp) {
+            dataStack.sp = dataStack.base + slot + 1;
+        }
         dataStack.base[slot] = *--sp;
         NEXT();
     }
 
     CASE(LOAD) {
         int slot = read_int(&ip);
+        assert(slot >= 0 && dataStack.base + slot < dataStack.sp);
+        if (UNLIKELY(sp == limit)) {
+            s->sp = sp;
+            expand_stack(s);
+            base = s->base;
+            sp = s->sp;
+            limit = s->limit;
+        }
         *sp++ = dataStack.base[slot];
         NEXT();
     }
+
 
     CASE(DEL) {
         assert(!stack_empty(&dataStack));

@@ -37,6 +37,9 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
                 if constexpr (std::is_same_v<T, VarDecl>) {
                     emit_u8(bytecode, OP_STORE);
                     emit_u32(bytecode, static_cast<uint32_t>(value.name_index));
+                } else if constexpr (std::is_same_v<T, VarChange>) {
+                    emit_u8(bytecode, OP_STORE);
+                    emit_u32(bytecode, static_cast<uint32_t>(value.name_index));
                 } else if constexpr (std::is_same_v<T, Literal>) {
                     emit_u8(bytecode, OP_PUSH);
                     emit_u32(bytecode, static_cast<uint32_t>(value.value));
