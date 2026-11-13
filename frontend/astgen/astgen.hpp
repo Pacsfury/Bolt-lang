@@ -13,12 +13,6 @@ struct Literal {
     int value;
 };
 
-struct BinaryOp {
-    NodeId left;
-    NodeId right;
-    char op;
-};
-
 struct VarDecl {
     NodeId initializer;
     int name_index;
@@ -34,8 +28,14 @@ struct WriteNode {
     std::string str;
 };
 
+struct iBinOpNode {
+    NodeId left;
+    NodeId right;
+    char op;
+};
+
 struct Node {
-    std::variant<Literal, BinaryOp, VarDecl, WriteNode, VarChange> data;
+    std::variant<Literal, VarDecl, WriteNode, VarChange, iBinOpNode> data;
 };
 
 struct AST {

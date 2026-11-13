@@ -50,6 +50,15 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
 
                     emit_u8(bytecode, OP_PRINT);
                     emit_u32(bytecode, cpoolidx);
+                } else if constexpr (std::is_same_v<T, iBinOpNode>) {
+                    uint8_t operation = OP_ADD;
+                    switch(value.op) {
+                        case '+': operation = OP_ADD; break;
+                        case '-': operation = OP_SUB; break;
+                        case '*': operation = OP_MUL; break;
+                        case '/': operation = OP_DIV; break;
+                    }
+                    emit_u8(bytecode, operation);
                 }
 
             },

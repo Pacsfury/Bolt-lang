@@ -47,14 +47,13 @@ void show(const AST& ast) {
     for (const auto& n : ast.nodes) {
         if (auto literal = std::get_if<Literal>(&n.data)) {
             std::cout << "  Literal: " << literal->value << "\n";
-        } else if (auto binop = std::get_if<BinaryOp>(&n.data)) {
-            std::cout << "  Binary Operator: [left] " << binop->left << " [op] " << binop->op << " [right] "
-                      << binop->right << "\n";
         } else if (auto vardecl = std::get_if<VarDecl>(&n.data)) {
             std::cout << "  VarDecl: [name] " << ast.strings[vardecl->name_index] << " [value_node_index] "
                       << vardecl->initializer << " [other] const=" << vardecl->isconst << "\n";
         } else if (auto write = std::get_if<WriteNode>(&n.data)) {
             std::cout << "  WriteNode: " << write->str << "\n";
+        } else if (auto binop = std::get_if<iBinOpNode>(&n.data)) {
+            std::cout << "  iBinOpNode: " << "[left] "<< binop->left << " [right] " << binop->right << " [op] " << binop->op << "\n";
         }
     }
     std::cout << "\n";

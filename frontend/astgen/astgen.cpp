@@ -136,6 +136,30 @@ AST createAST(const std::vector<Token>& tokens) {
 
                 break;
             }
+            case tokens::c_int: {
+                if (state.tokens[state.index+1].type == tokens::plus) {
+                    NodeId left = parse_expression(state, ast);
+                    state.consume(); // consume '+'
+                    iBinOpNode node{left, parse_expression(state, ast), '+'};
+                    ast.add_node(Node{node});
+                } else if (state.tokens[state.index+1].type == tokens::minus) {
+                    NodeId left = parse_expression(state, ast);
+                    state.consume(); // consume '-'
+                    iBinOpNode node{left, parse_expression(state, ast), '-'};
+                    ast.add_node(Node{node});
+                } else if (state.tokens[state.index+1].type == tokens::star) {
+                    NodeId left = parse_expression(state, ast);
+                    state.consume(); // consume '+'
+                    iBinOpNode node{left, parse_expression(state, ast), '*'};
+                    ast.add_node(Node{node});
+                } else if (state.tokens[state.index+1].type == tokens::slash) {
+                    NodeId left = parse_expression(state, ast);
+                    state.consume(); // consume '/'
+                    iBinOpNode node{left, parse_expression(state, ast), '/'};
+                    ast.add_node(Node{node});
+                }
+                break;
+            }
             case tokens::eof: {
                 goto eof;
                 break;

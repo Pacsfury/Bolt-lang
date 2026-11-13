@@ -135,6 +135,4 @@ static inline int32_t read_int(const uint8_t** ip) {
     return -1 - (int32_t)(UINT32_MAX - value);
 }
 
-
-
 void execute(DynamicStack* restrict s, const uint8_t* restrict code);
