@@ -15,6 +15,7 @@ typedef enum {
     OP_STORE,
     OP_LOAD,
     OP_DEL,
+    OP_EQU,
 
     OP_PRINT,
     OP_COUNT  // keep last: number of opcodes
