@@ -38,15 +38,15 @@ NodeId parse_primary(ParserState& state, AST& ast) {
     Token current = state.consume();
 
     if (current.type == tokens::c_int) {
-        Literal lit{std::stoi(current.value), true};
+        Literal lit{std::stoi(current.value)};
         return ast.add_node(Node{lit});
     }
     if (current.type == tokens::c_char) {
-        Literal lit{static_cast<unsigned char>(current.value[0]), false};
+        Literal lit{static_cast<unsigned char>(current.value[0])};
         return ast.add_node(Node{lit});
     }
     if (current.type == tokens::c_str) {
-        Literal lit{ast.add_string(current.value), false};
+        Literal lit{ast.add_string(current.value)};
         return ast.add_node(Node{lit});
     }
     if (current.type == tokens::identifier) {
@@ -140,7 +140,13 @@ AST createAST(const std::vector<Token>& tokens) {
                 Token name_token = state.consume();
 
                 if (state.peek().type != tokens::equal) {
-                    throwError("Bolt Syntax Error: expected '=' after variable name");
+                    --state.index;
+                    parse_expression(state, ast);
+                    if (state.peek().type != tokens::semi) {
+                        throwError("Bolt Syntax Error: expected ';' after expression");
+                    }
+                    state.consume();
+                    break;
                 }
                 state.consume();  // consume '='
 

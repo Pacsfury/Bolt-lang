@@ -3,8 +3,8 @@
 
 void resetVariables();
 
-void registervar(std::string name, bool isconst, bool is_integer);
+void registervar(std::string name, bool isconst);
 
-bool checkVariableRead(const std::string& name);
+void checkVariableRead(const std::string& name);
 
-void checkAssignment(const std::string& name, bool is_integer);
+void checkAssignment(const std::string& name);

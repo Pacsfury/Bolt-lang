@@ -11,7 +11,6 @@ using NodeId = uint32_t;
 
 struct Literal {
     int value;
-    bool is_integer = true;
 };
 
 struct VarRead {
