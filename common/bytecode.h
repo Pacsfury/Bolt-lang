@@ -18,6 +18,8 @@ typedef enum {
     OP_EQU,
 
     OP_PRINT,
+    OP_READ,
+    OP_PRINT_VAR,
     OP_COUNT  // keep last: number of opcodes
 } Operations;
 

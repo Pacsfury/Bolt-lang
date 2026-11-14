@@ -213,9 +213,7 @@ int main(void) {
     if (package_status < 0)
         return 1;
 
-    if (package_status > 0) {
-        cpool_set_embedded(cpool, cpool_size);
-    } else {
+    if (package_status == 0) {
         FILE* file = fopen("main.bvm", "rb");
         if (!file) {
             throwError("BVM File Error: Could't open 'main.bvm'");
@@ -251,6 +249,17 @@ int main(void) {
         fclose(file);
     }
 
+    int cpool_status = package_status > 0
+                           ? cpool_init(cpool, cpool_size)
+                           : cpool_load_file("BVM-CPOOL");
+    if (cpool_status != 0) {
+        free(bytecode);
+        free(cpool);
+        return 1;
+    }
+    free(cpool);
+    cpool = NULL;
+
     DynamicStack stack;
     init_stack(&stack, 64);
 
@@ -260,6 +269,7 @@ int main(void) {
         free_stack(&stack);
         free(bytecode);
         free(cpool);
+        cpool_destroy();
         return 1;
     }
 
@@ -269,6 +279,7 @@ int main(void) {
         free_stack(&stack);
         free(bytecode);
         free(cpool);
+        cpool_destroy();
         return 1;
     }
     if (!timer_now(&start)) {
@@ -276,6 +287,7 @@ int main(void) {
         free_stack(&stack);
         free(bytecode);
         free(cpool);
+        cpool_destroy();
         return 1;
     }
 
@@ -286,6 +298,7 @@ int main(void) {
         free_stack(&stack);
         free(bytecode);
         free(cpool);
+        cpool_destroy();
         return 1;
     }
 
@@ -300,6 +313,7 @@ int main(void) {
     free_stack(&stack);
     free(bytecode);
     free(cpool);
+    cpool_destroy();
 
     return result;
 }

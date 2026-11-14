@@ -81,6 +81,8 @@ std::vector<Token> tokenize(const std::string& src) {
                 t.type = tokens::var;
             } else if (view == "write") {
                 t.type = tokens::write;
+            } else if (view == "read") {
+                t.type = tokens::read;
             } else if (view == "const") {
                 t.type = tokens::constant;
             } else if (token_len >= 2 && view.front() == view.back() &&

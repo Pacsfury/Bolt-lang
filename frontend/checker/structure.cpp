@@ -36,6 +36,9 @@ void checkAST(const AST& ast) {
                         !is_expression(value.left) || !is_expression(value.right)) {
                         throwError("Bolt Compile Error: Invalid integer binary operation");
                     }
+                } else if constexpr (std::is_same_v<T, ReadNode>) {
+                    checkVariableRead(ast.strings[value.var_idx]);
+                    checkAssignment(ast.strings[value.var_idx]);
                 }
             },
             n.data);

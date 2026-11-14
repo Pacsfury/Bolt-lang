@@ -1,3 +1,4 @@
+#include <unordered_set>
 #include <vector>
 
 #include "../../debug/errors.hpp"
@@ -80,8 +81,10 @@ AST createAST(const std::vector<Token>& tokens) {
     AST ast;
     ParserState state{0, tokens};
     std::unordered_map<std::string, std::string> string_values;
+    std::unordered_set<std::string> runtime_string_values;
 
     auto remember_string_value = [&](const std::string& name, const Token& value) {
+        runtime_string_values.erase(name);
         if (value.type == tokens::c_str || value.type == tokens::c_char) {
             ast.add_string(value.value);
             string_values[name] = value.value;
@@ -178,19 +181,44 @@ AST createAST(const std::vector<Token>& tokens) {
                         throwError("Bolt Compile Error: variable '" + output.value +
                                    "' does not contain a string or char");
                     }
-                    node_value = value->second;
+                    if (runtime_string_values.find(output.value) != runtime_string_values.end()) {
+                        WriteNode node{"", ast.string_to_index.at(output.value)};
+                        ast.add_node(Node{node});
+                    } else {
+                        node_value = value->second;
+                    }
                 } else {
                     node_value = output.value;
                 }
 
-                WriteNode node{node_value};
-                ast.add_node(Node{node});
+                if (output.type != tokens::identifier ||
+                    runtime_string_values.find(output.value) == runtime_string_values.end()) {
+                    WriteNode node{node_value};
+                    ast.add_node(Node{node});
+                }
 
                 if (state.peek().type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
                 state.consume();  // consume ';'
 
+                break;
+            }
+            case tokens::read: {
+                state.consume();  // consume 'read'
+                ReadNode node;
+                Token name_token = state.consume();
+                if (name_token.type != tokens::identifier) {
+                    throwError("Bolt Syntax Error: expected variable name after 'read'");
+                }
+                node.var_idx = ast.add_string(name_token.value);
+                runtime_string_values.insert(name_token.value);
+
+                if (state.peek().type != tokens::semi) {
+                    throwError("Bolt Syntax Error: expected ';' after statement");
+                }
+                state.consume();  // consume ';'
+                ast.add_node(Node{node});
                 break;
             }
             case tokens::c_int:

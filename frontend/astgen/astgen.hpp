@@ -30,6 +30,7 @@ struct VarChange {
 
 struct WriteNode {
     std::string str;
+    int variable_index = -1;
 };
 
 struct iBinOpNode {
@@ -38,8 +39,12 @@ struct iBinOpNode {
     char op;
 };
 
+struct ReadNode {
+    NodeId var_idx;
+};
+
 struct Node {
-    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode> data;
+    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode, ReadNode> data;
 };
 
 struct AST {
