@@ -47,6 +47,8 @@ void show(const AST& ast) {
     for (const auto& n : ast.nodes) {
         if (auto literal = std::get_if<Literal>(&n.data)) {
             std::cout << "  Literal: " << literal->value << "\n";
+        } else if (auto read = std::get_if<VarRead>(&n.data)) {
+            std::cout << "  VarRead: " << ast.strings[read->name_index] << "\n";
         } else if (auto vardecl = std::get_if<VarDecl>(&n.data)) {
             std::cout << "  VarDecl: [name] " << ast.strings[vardecl->name_index] << " [value_node_index] "
                       << vardecl->initializer << " [other] const=" << vardecl->isconst << "\n";

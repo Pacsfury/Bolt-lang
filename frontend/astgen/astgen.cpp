@@ -4,25 +4,76 @@
 #include "../lexer/tokens.hpp"
 #include "astgen.hpp"
 
-inline NodeId parse_expression(ParserState& state, AST& ast) {
-    Token current = state.peek();
+namespace {
+int operator_precedence(tokens type) {
+    switch (type) {
+        case tokens::plus:
+        case tokens::minus:
+            return 1;
+        case tokens::star:
+        case tokens::slash:
+            return 2;
+        default:
+            return -1;
+    }
+}
+
+char operator_character(tokens type) {
+    switch (type) {
+        case tokens::plus:
+            return '+';
+        case tokens::minus:
+            return '-';
+        case tokens::star:
+            return '*';
+        case tokens::slash:
+            return '/';
+        default:
+            throwError("Bolt Syntax Error: expected arithmetic operator");
+            return '\0';
+    }
+}
+
+NodeId parse_primary(ParserState& state, AST& ast) {
+    Token current = state.consume();
 
     if (current.type == tokens::c_int) {
-        state.consume();
-        Literal lit{std::stoi(current.value)};
+        Literal lit{std::stoi(current.value), true};
         return ast.add_node(Node{lit});
-    } else if (current.type == tokens::c_char) {
-        state.consume();
-        Literal lit{(int)(current.value[0])};
+    }
+    if (current.type == tokens::c_char) {
+        Literal lit{static_cast<unsigned char>(current.value[0]), false};
         return ast.add_node(Node{lit});
-    } else if (current.type == tokens::c_str) {
-        state.consume();
-        Literal lit{(int)(ast.add_string(current.value))};
+    }
+    if (current.type == tokens::c_str) {
+        Literal lit{ast.add_string(current.value), false};
         return ast.add_node(Node{lit});
+    }
+    if (current.type == tokens::identifier) {
+        VarRead read{ast.add_string(current.value)};
+        return ast.add_node(Node{read});
     }
 
     throwError("Bolt Syntax Error: unrecognized operation or value type");
-    return 1;
+    return 0;
+}
+
+NodeId parse_expression(ParserState& state, AST& ast, int minimum_precedence) {
+    NodeId left = parse_primary(state, ast);
+
+    while (operator_precedence(state.peek().type) >= minimum_precedence) {
+        Token operation = state.consume();
+        int precedence = operator_precedence(operation.type);
+        NodeId right = parse_expression(state, ast, precedence + 1);
+        left = ast.add_node(Node{iBinOpNode{left, right, operator_character(operation.type)}});
+    }
+
+    return left;
+}
+}  // namespace
+
+NodeId parse_expression(ParserState& state, AST& ast) {
+    return parse_expression(state, ast, 1);
 }
 
 AST createAST(const std::vector<Token>& tokens) {
@@ -136,28 +187,14 @@ AST createAST(const std::vector<Token>& tokens) {
 
                 break;
             }
-            case tokens::c_int: {
-                if (state.tokens[state.index+1].type == tokens::plus) {
-                    NodeId left = parse_expression(state, ast);
-                    state.consume(); // consume '+'
-                    iBinOpNode node{left, parse_expression(state, ast), '+'};
-                    ast.add_node(Node{node});
-                } else if (state.tokens[state.index+1].type == tokens::minus) {
-                    NodeId left = parse_expression(state, ast);
-                    state.consume(); // consume '-'
-                    iBinOpNode node{left, parse_expression(state, ast), '-'};
-                    ast.add_node(Node{node});
-                } else if (state.tokens[state.index+1].type == tokens::star) {
-                    NodeId left = parse_expression(state, ast);
-                    state.consume(); // consume '+'
-                    iBinOpNode node{left, parse_expression(state, ast), '*'};
-                    ast.add_node(Node{node});
-                } else if (state.tokens[state.index+1].type == tokens::slash) {
-                    NodeId left = parse_expression(state, ast);
-                    state.consume(); // consume '/'
-                    iBinOpNode node{left, parse_expression(state, ast), '/'};
-                    ast.add_node(Node{node});
+            case tokens::c_int:
+            case tokens::c_char:
+            case tokens::c_str: {
+                parse_expression(state, ast);
+                if (state.peek().type != tokens::semi) {
+                    throwError("Bolt Syntax Error: expected ';' after expression");
                 }
+                state.consume();
                 break;
             }
             case tokens::eof: {

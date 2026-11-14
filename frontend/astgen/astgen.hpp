@@ -11,6 +11,11 @@ using NodeId = uint32_t;
 
 struct Literal {
     int value;
+    bool is_integer = true;
+};
+
+struct VarRead {
+    int name_index;
 };
 
 struct VarDecl {
@@ -35,7 +40,7 @@ struct iBinOpNode {
 };
 
 struct Node {
-    std::variant<Literal, VarDecl, WriteNode, VarChange, iBinOpNode> data;
+    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode> data;
 };
 
 struct AST {
