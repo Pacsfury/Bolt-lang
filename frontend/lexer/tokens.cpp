@@ -32,6 +32,20 @@ std::vector<Token> tokenize(const std::string& src) {
                 t.type = tokens::star;
                 break;
             case '/':
+                if (src[i + 1] == '/') {
+                    i += 2;
+                    while (src[i] != '\n' && src[i] != '\0') {
+                        i++;
+                    }
+                } else if (src[i + 1] == '*') {
+                    i += 2;
+                    while (src[i] != '\0' && !(src[i] == '*' && src[i + 1] == '/')) {
+                        i++;
+                    }
+                    if (src[i] != '\0') {
+                        i += 2;
+                    }
+                }
                 t.type = tokens::slash;
                 break;
             case '=':

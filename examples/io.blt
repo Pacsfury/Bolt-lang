@@ -1,0 +1,21 @@
+/*
+    examples/
+        io.blt
+            -- Showcasing Bolt input and output
+*/
+
+// OUTPUT
+write "1.1: Direct string output";
+write "1.2: Direct character output";
+write 'I';
+var value = "1.3: Outputting a variable value";
+write value;
+var othervar = "";
+othervar = "1.4: Outputting a modified variable value";
+write othervar;
+
+// INPUT
+var userval = "";
+write "2.1: Reading user input and printing it";
+read userval;
+write userval;

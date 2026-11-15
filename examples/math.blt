@@ -1,0 +1,8 @@
+/*
+    examples/
+        math.blt
+            -- Showcasing basic math capabilites of Bolt
+*/
+
+// Get the result with $LASTEXITCODE or $? after executing the VM
+1+4*6/1+3*6*12-54+342*34;
