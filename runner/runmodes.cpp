@@ -94,14 +94,14 @@ void timeRun(std::string file, std::string out) {
     auto tokens = tokenize(content);
     auto lexend = std::chrono::high_resolution_clock::now();
     auto lextime = std::chrono::duration_cast<std::chrono::nanoseconds>(lexend - lexstart).count();
-    std::cout << "Lexing time: " << lextime << " nanosecons." << std::endl;
+    std::cout << "Lexing time: " << lextime << " nanoseconds." << std::endl;
     std::cout << "Or: " << lextime / 1000000.0 << " ms." << std::endl;
 
     auto astart = std::chrono::high_resolution_clock::now();
     auto ast = createAST(tokens);
     auto astend = std::chrono::high_resolution_clock::now();
     auto asttime = std::chrono::duration_cast<std::chrono::nanoseconds>(astend - astart).count();
-    std::cout << "ASTgen time: " << asttime << " nanosecons." << std::endl;
+    std::cout << "ASTgen time: " << asttime << " nanoseconds." << std::endl;
     std::cout << "Or: " << asttime / 1000000.0 << " ms." << std::endl;
 
     auto checkstart = std::chrono::high_resolution_clock::now();
@@ -109,7 +109,7 @@ void timeRun(std::string file, std::string out) {
     auto checkend = std::chrono::high_resolution_clock::now();
     auto checktime = std::chrono::duration_cast<std::chrono::nanoseconds>(checkend - checkstart).count();
 
-    std::cout << "Checking time: " << checktime << " nanosecons." << std::endl;
+    std::cout << "Checking time: " << checktime << " nanoseconds." << std::endl;
     std::cout << "Or: " << checktime / 1000000.0 << " ms." << std::endl;
 
     auto genstart = std::chrono::high_resolution_clock::now();
@@ -117,7 +117,7 @@ void timeRun(std::string file, std::string out) {
     auto genend = std::chrono::high_resolution_clock::now();
     auto gentime = std::chrono::duration_cast<std::chrono::nanoseconds>(genend - genstart).count();
 
-    std::cout << "Codegen time: " << gentime << " nanosecons." << std::endl;
+    std::cout << "Codegen time: " << gentime << " nanoseconds." << std::endl;
     std::cout << "Or: " << gentime / 1000000.0 << " ms." << std::endl;
 
     std::ofstream output(out, std::ios::binary);
