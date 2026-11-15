@@ -83,6 +83,10 @@ In all three modes, `in` is `main.blt` if not specified and `out`, `main.bvm`.
 
 These modes are not currently combinable. None of this modes executes it yet.
 
+## Benchmarks
+
+Small benchmarks at [here](./BENCH.md).
+
 ## Expected Syntax
 
 > Syntax may vary, as Bolt is in an early stage of development
