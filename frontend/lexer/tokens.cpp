@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "tokens.hpp"
@@ -32,19 +33,21 @@ std::vector<Token> tokenize(const std::string& src) {
                 t.type = tokens::star;
                 break;
             case '/':
-                if (src[i + 1] == '/') {
+                if (i + 1 < length && src[i + 1] == '/') {
                     i += 2;
-                    while (src[i] != '\n' && src[i] != '\0') {
+                    while (i < length && src[i] != '\n') {
                         i++;
                     }
-                } else if (src[i + 1] == '*') {
+                    continue;
+                } else if (i + 1 < length && src[i + 1] == '*') {
                     i += 2;
-                    while (src[i] != '\0' && !(src[i] == '*' && src[i + 1] == '/')) {
+                    while (i + 1 < length && !(src[i] == '*' && src[i + 1] == '/')) {
                         i++;
                     }
-                    if (src[i] != '\0') {
+                    if (i + 1 < length) {
                         i += 2;
                     }
+                    continue;
                 }
                 t.type = tokens::slash;
                 break;
@@ -106,16 +109,16 @@ std::vector<Token> tokenize(const std::string& src) {
                 } else {
                     t.type = tokens::c_str;
                 }
-                t.value = src.substr(start + 1, token_len - 2);
+                t.value = view.substr(1, token_len - 2);
 
             } else if (std::all_of(view.begin(), view.end(), [](unsigned char c) {
                            return std::isdigit(c) != 0;
                        })) {
                 t.type = tokens::c_int;
-                t.value = std::string(view);
+                t.value = view;
             } else {
                 t.type = tokens::identifier;
-                t.value = src.substr(start, token_len);
+                t.value = view;
             }
             result.push_back(t);
         } else {

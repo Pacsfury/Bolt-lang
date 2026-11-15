@@ -1,4 +1,5 @@
 #pragma once
+#include <string_view>
 #include <string>
 #include <vector>
 
@@ -6,7 +7,7 @@ enum class tokens { var, c_int, plus, minus, star, slash, c_str, identifier, equ
 
 struct Token {
     tokens type;
-    std::string value;
+    std::string_view value;
 };
 
 std::vector<Token> tokenize(const std::string& src);

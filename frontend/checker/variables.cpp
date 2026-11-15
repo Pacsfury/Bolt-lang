@@ -1,38 +1,28 @@
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 #include "../../debug/errors.hpp"
+#include "variables.hpp"
 
-namespace {
-std::unordered_map<std::string, bool> compiler_symbol_table;
-}  // namespace
-
-void resetVariables() {
-    compiler_symbol_table.clear();
-}
-
-void registervar(std::string name, bool isconst) {
-    auto [iterator, inserted] = compiler_symbol_table.insert({name, isconst});
-
-    if (!inserted) {
+void registervar(std::vector<VarState>& symbol_table, std::size_t index, const std::string& name, bool isconst) {
+    if (symbol_table[index] != VarState::Undeclared) {
         throwError("Bolt Compile Error: Redeclared variable '" + name + "'");
     }
+    symbol_table[index] = isconst ? VarState::Constant : VarState::Mutable;
 }
 
-void checkVariableRead(const std::string& name) {
-    auto it = compiler_symbol_table.find(name);
-    if (it == compiler_symbol_table.end()) {
+void checkVariableRead(const std::vector<VarState>& symbol_table, std::size_t index, const std::string& name) {
+    if (symbol_table[index] == VarState::Undeclared) {
         throwError("Bolt Compile Error: Variable '" + name + "' is used before declaration");
     }
 }
 
-void checkAssignment(const std::string& name) {
-    auto it = compiler_symbol_table.find(name);
-    if (it == compiler_symbol_table.end()) {
+void checkAssignment(const std::vector<VarState>& symbol_table, std::size_t index, const std::string& name) {
+    if (symbol_table[index] == VarState::Undeclared) {
         throwError("Bolt Compile Error: Variable '" + name + "' is used before declaration");
     }
 
-    if (it->second) {
+    if (symbol_table[index] == VarState::Constant) {
         throwError("Bolt Compile Error: Cannot modify constant '" + name + "'");
     }
 }

@@ -8,7 +8,7 @@
 #include "variables.hpp"
 
 void checkAST(const AST& ast) {
-    resetVariables();
+    std::vector<VarState> symbol_table(ast.strings.size(), VarState::Undeclared);
 
     for (size_t index = 0; index < ast.nodes.size(); ++index) {
         const Node& n = ast.nodes[index];
@@ -17,11 +17,11 @@ void checkAST(const AST& ast) {
                 using T = std::decay_t<decltype(value)>;
 
                 if constexpr (std::is_same_v<T, VarDecl>) {
-                    registervar(ast.strings[value.name_index], value.isconst);
+                    registervar(symbol_table, value.name_index, ast.strings[value.name_index], value.isconst);
                 } else if constexpr (std::is_same_v<T, VarChange>) {
-                    checkAssignment(ast.strings[value.name_index]);
+                    checkAssignment(symbol_table, value.name_index, ast.strings[value.name_index]);
                 } else if constexpr (std::is_same_v<T, VarRead>) {
-                    checkVariableRead(ast.strings[value.name_index]);
+                    checkVariableRead(symbol_table, value.name_index, ast.strings[value.name_index]);
                 } else if constexpr (std::is_same_v<T, iBinOpNode>) {
                     const auto is_expression = [&](NodeId id) {
                         if (id >= index) {
@@ -37,8 +37,7 @@ void checkAST(const AST& ast) {
                         throwError("Bolt Compile Error: Invalid integer binary operation");
                     }
                 } else if constexpr (std::is_same_v<T, ReadNode>) {
-                    checkVariableRead(ast.strings[value.var_idx]);
-                    checkAssignment(ast.strings[value.var_idx]);
+                    checkAssignment(symbol_table, value.var_idx, ast.strings[value.var_idx]);
                 }
             },
             n.data);

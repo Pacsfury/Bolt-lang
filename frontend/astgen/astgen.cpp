@@ -1,3 +1,4 @@
+#include <string>
 #include <vector>
 
 #include "../../debug/errors.hpp"
@@ -51,7 +52,7 @@ NodeId parse_primary(ParserState& state, AST& ast) {
     const Token& current = consume_token(state);
 
     if (current.type == tokens::c_int) {
-        Literal lit{std::stoi(current.value)};
+        Literal lit{std::stoi(std::string(current.value))};
         return ast.add_node(Node{lit});
     }
     if (current.type == tokens::c_char) {
@@ -59,11 +60,11 @@ NodeId parse_primary(ParserState& state, AST& ast) {
         return ast.add_node(Node{lit});
     }
     if (current.type == tokens::c_str) {
-        Literal lit{ast.add_string(current.value)};
+        Literal lit{ast.add_string(std::string(current.value))};
         return ast.add_node(Node{lit});
     }
     if (current.type == tokens::identifier) {
-        VarRead read{ast.add_string(current.value)};
+        VarRead read{ast.add_string(std::string(current.value))};
         return ast.add_node(Node{read});
     }
 
@@ -110,9 +111,9 @@ AST createAST(const std::vector<Token>& tokens) {
         int string_index = -1;
         bool is_runtime_string = false;
         if (value.type == tokens::c_str || value.type == tokens::c_char) {
-            string_index = ast.add_string(value.value);
+            string_index = ast.add_string(std::string(value.value));
         } else if (value.type == tokens::identifier) {
-            const auto source = ast.string_to_index.find(value.value);
+            const auto source = ast.string_to_index.find(std::string(value.value));
             if (source != ast.string_to_index.end() && source->second >= 0 &&
                 static_cast<size_t>(source->second) < string_values.size() &&
                 string_values[source->second] != -1) {
@@ -142,7 +143,7 @@ AST createAST(const std::vector<Token>& tokens) {
                 consume_token(state);  // consume '='
 
                 const Token& initializer = peek_token(state);
-                const int name_index = ast.add_string(name_token.value);
+                const int name_index = ast.add_string(std::string(name_token.value));
                 VarDecl vardecl{parse_expression(state, ast), name_index, is_const};
                 remember_string_value(name_index, initializer);
                 ast.add_node(Node{vardecl});
@@ -169,9 +170,9 @@ AST createAST(const std::vector<Token>& tokens) {
                 consume_token(state);  // consume '='
 
                 const Token& initializer = peek_token(state);
-                const auto name = ast.string_to_index.find(name_token.value);
+                const auto name = ast.string_to_index.find(std::string(name_token.value));
                 if (name == ast.string_to_index.end()) {
-                    throwError("Bolt Compile Error: Variable '" + name_token.value +
+                    throwError("Bolt Compile Error: Variable '" + std::string(name_token.value) +
                                "' is used before declaration");
                 }
                 const int name_index = name->second;
@@ -197,11 +198,11 @@ AST createAST(const std::vector<Token>& tokens) {
                 int output_name_index = -1;
 
                 if (output.type == tokens::identifier) {
-                    const auto name = ast.string_to_index.find(output.value);
+                    const auto name = ast.string_to_index.find(std::string(output.value));
                     if (name == ast.string_to_index.end() ||
                         static_cast<size_t>(name->second) >= string_values.size() ||
                         string_values[name->second] == -1) {
-                        throwError("Bolt Compile Error: variable '" + output.value +
+                        throwError("Bolt Compile Error: variable '" + std::string(output.value) +
                                    "' does not contain a string or char");
                     }
                     output_name_index = name->second;
@@ -235,7 +236,7 @@ AST createAST(const std::vector<Token>& tokens) {
                 if (name_token.type != tokens::identifier) {
                     throwError("Bolt Syntax Error: expected variable name after 'read'");
                 }
-                node.var_idx = ast.add_string(name_token.value);
+                node.var_idx = ast.add_string(std::string(name_token.value));
                 ensure_variable_slot(node.var_idx);
                 runtime_string_values[node.var_idx] = true;
 
