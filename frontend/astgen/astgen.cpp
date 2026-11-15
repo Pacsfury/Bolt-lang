@@ -1,4 +1,3 @@
-#include <unordered_set>
 #include <vector>
 
 #include "../../debug/errors.hpp"
@@ -6,6 +5,19 @@
 #include "astgen.hpp"
 
 namespace {
+const Token& peek_token(const ParserState& state) {
+    static const Token eof_token{tokens::eof, ""};
+    return state.index < state.tokens.size() ? state.tokens[state.index] : eof_token;
+}
+
+const Token& consume_token(ParserState& state) {
+    const Token& token = peek_token(state);
+    if (state.index < state.tokens.size()) {
+        ++state.index;
+    }
+    return token;
+}
+
 int operator_precedence(tokens type) {
     switch (type) {
         case tokens::plus:
@@ -36,7 +48,7 @@ char operator_character(tokens type) {
 }
 
 NodeId parse_primary(ParserState& state, AST& ast) {
-    Token current = state.consume();
+    const Token& current = consume_token(state);
 
     if (current.type == tokens::c_int) {
         Literal lit{std::stoi(current.value)};
@@ -62,8 +74,8 @@ NodeId parse_primary(ParserState& state, AST& ast) {
 NodeId parse_expression(ParserState& state, AST& ast, int minimum_precedence) {
     NodeId left = parse_primary(state, ast);
 
-    while (operator_precedence(state.peek().type) >= minimum_precedence) {
-        Token operation = state.consume();
+    while (operator_precedence(peek_token(state).type) >= minimum_precedence) {
+        const Token& operation = consume_token(state);
         int precedence = operator_precedence(operation.type);
         NodeId right = parse_expression(state, ast, precedence + 1);
         left = ast.add_node(Node{iBinOpNode{left, right, operator_character(operation.type)}});
@@ -79,145 +91,158 @@ NodeId parse_expression(ParserState& state, AST& ast) {
 
 AST createAST(const std::vector<Token>& tokens) {
     AST ast;
+    ast.nodes.reserve(tokens.size());
+    ast.strings.reserve(tokens.size());
     ParserState state{0, tokens};
-    std::unordered_map<std::string, std::string> string_values;
-    std::unordered_set<std::string> runtime_string_values;
+    std::vector<int> string_values;
+    std::vector<bool> runtime_string_values;
 
-    auto remember_string_value = [&](const std::string& name, const Token& value) {
-        runtime_string_values.erase(name);
-        if (value.type == tokens::c_str || value.type == tokens::c_char) {
-            ast.add_string(value.value);
-            string_values[name] = value.value;
-        } else {
-            string_values.erase(name);
+    auto ensure_variable_slot = [&](int name_index) {
+        const size_t required_size = static_cast<size_t>(name_index) + 1;
+        if (string_values.size() < required_size) {
+            string_values.resize(required_size, -1);
+            runtime_string_values.resize(required_size, false);
         }
     };
 
-    while (state.peek().type != tokens::eof) {
-        Token actual = state.peek();
+    auto remember_string_value = [&](int name_index, const Token& value) {
+        ensure_variable_slot(name_index);
+        int string_index = -1;
+        bool is_runtime_string = false;
+        if (value.type == tokens::c_str || value.type == tokens::c_char) {
+            string_index = ast.add_string(value.value);
+        } else if (value.type == tokens::identifier) {
+            const auto source = ast.string_to_index.find(value.value);
+            if (source != ast.string_to_index.end() && source->second >= 0 &&
+                static_cast<size_t>(source->second) < string_values.size() &&
+                string_values[source->second] != -1) {
+                string_index = string_values[source->second];
+                is_runtime_string = runtime_string_values[source->second];
+            }
+        }
+        string_values[name_index] = string_index;
+        runtime_string_values[name_index] = is_runtime_string;
+    };
+
+    while (peek_token(state).type != tokens::eof) {
+        const Token& actual = peek_token(state);
 
         switch (actual.type) {
-            case tokens::var: {
-                state.consume();  // consume 'var'
-                Token name_token = state.consume();
-
-                if (state.peek().type != tokens::equal) {
-                    throwError("Bolt Syntax Error: expected '=' after variable name");
-                }
-                state.consume();  // consume '='
-
-                Token initializer = state.peek();
-                VarDecl vardecl{parse_expression(state, ast), ast.add_string(name_token.value)};
-                remember_string_value(name_token.value, initializer);
-                ast.add_node(Node{vardecl});
-
-                if (state.peek().type != tokens::semi) {
-                    throwError("Bolt Syntax Error: expected ';' after statement");
-                }
-                state.consume();  // consume ';'
-
-                break;
-            }
+            case tokens::var:
             case tokens::constant: {
-                state.consume();  // consume 'const'
-                Token name_token = state.consume();
+                const bool is_const = consume_token(state).type == tokens::constant;
+                const Token& name_token = consume_token(state);
+                if (name_token.type != tokens::identifier) {
+                    throwError("Bolt Syntax Error: expected variable name after declaration");
+                }
 
-                if (state.peek().type != tokens::equal) {
+                if (peek_token(state).type != tokens::equal) {
                     throwError("Bolt Syntax Error: expected '=' after variable name");
                 }
-                state.consume();  // consume '='
+                consume_token(state);  // consume '='
 
-                Token initializer = state.peek();
-                VarDecl vardecl{parse_expression(state, ast), ast.add_string(name_token.value), true};
-                remember_string_value(name_token.value, initializer);
+                const Token& initializer = peek_token(state);
+                const int name_index = ast.add_string(name_token.value);
+                VarDecl vardecl{parse_expression(state, ast), name_index, is_const};
+                remember_string_value(name_index, initializer);
                 ast.add_node(Node{vardecl});
 
-                if (state.peek().type != tokens::semi) {
+                if (peek_token(state).type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
-                state.consume();  // consume ';'
+                consume_token(state);  // consume ';'
 
                 break;
             }
             case tokens::identifier: {
-                Token name_token = state.consume();
+                const Token& name_token = consume_token(state);
 
-                if (state.peek().type != tokens::equal) {
+                if (peek_token(state).type != tokens::equal) {
                     --state.index;
                     parse_expression(state, ast);
-                    if (state.peek().type != tokens::semi) {
+                    if (peek_token(state).type != tokens::semi) {
                         throwError("Bolt Syntax Error: expected ';' after expression");
                     }
-                    state.consume();
+                    consume_token(state);
                     break;
                 }
-                state.consume();  // consume '='
+                consume_token(state);  // consume '='
 
-                Token initializer = state.peek();
-                VarChange varchange{parse_expression(state, ast), ast.string_to_index.at(name_token.value)};
-                remember_string_value(name_token.value, initializer);
+                const Token& initializer = peek_token(state);
+                const auto name = ast.string_to_index.find(name_token.value);
+                if (name == ast.string_to_index.end()) {
+                    throwError("Bolt Compile Error: Variable '" + name_token.value +
+                               "' is used before declaration");
+                }
+                const int name_index = name->second;
+                VarChange varchange{parse_expression(state, ast), name_index};
+                remember_string_value(name_index, initializer);
                 ast.add_node(Node{varchange});
 
-                if (state.peek().type != tokens::semi) {
+                if (peek_token(state).type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
-                state.consume();  // consume ';'
+                consume_token(state);  // consume ';'
 
                 break;
             }
             case tokens::write: {
-                state.consume();  // consume 'write'
-                if (state.peek().type != tokens::c_str && state.peek().type != tokens::c_char &&
-                    state.peek().type != tokens::identifier) {
+                consume_token(state);  // consume 'write'
+                if (peek_token(state).type != tokens::c_str && peek_token(state).type != tokens::c_char &&
+                    peek_token(state).type != tokens::identifier) {
                     throwError("Bolt Syntax Error: expected string, char or variable name after 'write'");
                 }
-                Token output = state.consume();
+                const Token& output = consume_token(state);
                 std::string node_value;
+                int output_name_index = -1;
 
                 if (output.type == tokens::identifier) {
-                    auto value = string_values.find(output.value);
-                    if (value == string_values.end() ||
-                        ast.string_to_index.find(value->second) == ast.string_to_index.end()) {
+                    const auto name = ast.string_to_index.find(output.value);
+                    if (name == ast.string_to_index.end() ||
+                        static_cast<size_t>(name->second) >= string_values.size() ||
+                        string_values[name->second] == -1) {
                         throwError("Bolt Compile Error: variable '" + output.value +
                                    "' does not contain a string or char");
                     }
-                    if (runtime_string_values.find(output.value) != runtime_string_values.end()) {
-                        WriteNode node{"", ast.string_to_index.at(output.value)};
+                    output_name_index = name->second;
+                    if (runtime_string_values[name->second]) {
+                        WriteNode node{"", name->second};
                         ast.add_node(Node{node});
                     } else {
-                        node_value = value->second;
+                        node_value = ast.strings[string_values[name->second]];
                     }
                 } else {
                     node_value = output.value;
                 }
 
                 if (output.type != tokens::identifier ||
-                    runtime_string_values.find(output.value) == runtime_string_values.end()) {
+                    !runtime_string_values[output_name_index]) {
                     WriteNode node{node_value};
                     ast.add_node(Node{node});
                 }
 
-                if (state.peek().type != tokens::semi) {
+                if (peek_token(state).type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
-                state.consume();  // consume ';'
+                consume_token(state);  // consume ';'
 
                 break;
             }
             case tokens::read: {
-                state.consume();  // consume 'read'
+                consume_token(state);  // consume 'read'
                 ReadNode node;
-                Token name_token = state.consume();
+                const Token& name_token = consume_token(state);
                 if (name_token.type != tokens::identifier) {
                     throwError("Bolt Syntax Error: expected variable name after 'read'");
                 }
                 node.var_idx = ast.add_string(name_token.value);
-                runtime_string_values.insert(name_token.value);
+                ensure_variable_slot(node.var_idx);
+                runtime_string_values[node.var_idx] = true;
 
-                if (state.peek().type != tokens::semi) {
+                if (peek_token(state).type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
                 }
-                state.consume();  // consume ';'
+                consume_token(state);  // consume ';'
                 ast.add_node(Node{node});
                 break;
             }
@@ -225,10 +250,10 @@ AST createAST(const std::vector<Token>& tokens) {
             case tokens::c_char:
             case tokens::c_str: {
                 parse_expression(state, ast);
-                if (state.peek().type != tokens::semi) {
+                if (peek_token(state).type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after expression");
                 }
-                state.consume();
+                consume_token(state);
                 break;
             }
             case tokens::eof: {
@@ -236,7 +261,7 @@ AST createAST(const std::vector<Token>& tokens) {
                 break;
             }
             default:
-                state.consume();
+                consume_token(state);
                 break;
         }
     }
