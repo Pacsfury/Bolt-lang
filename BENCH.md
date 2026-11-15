@@ -1,16 +1,28 @@
 # Benchmarks
 
+> **Environment:** Intel i5 / DDR5 / Win11 / MSVC  
+> **Build Command:** `cmake --build cmake-build --config Release`  
+> **Date:** 2026-11-15
+
+
 Every benchmark includes:
-- Executed code
-- Time (bolt time <file>)
-- BVM time
+- Executed source code
+- Compilation breakdown (`bolt time <file>`)
+- Bolt Virtual Machine (BVM) execution time
 
-All benchmarks are executed with executables generated with:
-```bash
-cmake --build cmake-build --config Release
-```
+*Note: BVM execution time is omitted for benchmarks containing `read` to exclude interactive I/O wait times.*
 
-> Note: If the benchmark includes 'read' we won't write the VM time taken
+
+## Summary
+
+| Benchmark | Lines | Total Compile Time | Throughput | BVM Execution |
+| :--- | :---: | :---: | :---: | :---: |
+| **1. Output** | 6 | 0.0374 ms | ~160k LOC/s | 0.0790 ms |
+| **2. IO & Mutation** | 12 | 0.0326 ms | ~368k LOC/s | *N/A (`read`)* |
+| **3. Arithmetic** | 7 | 0.0656 ms | ~107k LOC/s | 0.0765 ms |
+| **4. Mixed String Pool** | 20 | 0.0411 ms | ~487k LOC/s | *N/A (`read`)* |
+| **5. 5,000-Line Stress** | 4,999 | 3.0280 ms | **~1.65M LOC/s** | 0.0685 ms |
+
 
 ## Benchmark 1: Output
 
@@ -147,3 +159,59 @@ Or: 0.002 ms.
 Codegen time: 13000 nanoseconds.
 Or: 0.013 ms.
 ```
+
+## Benchmark 5: Really long thingy
+
+**Generator**
+```bash
+{
+  echo 'const base = 42;'
+  echo 'var acc = 10;'
+  for ((i=1; i<=2498; i++)); do
+    echo "var v$i = $i * 3 + 12 / 4 - 2;"
+    echo "acc = acc + v$i * 2 - 1;"
+  done
+  echo 'acc;'
+} > stress.blt
+```
+
+```powershell
+$lines = [System.Collections.Generic.List[string]]::new()
+$lines.Add('const base = 42;')
+$lines.Add('var acc = 10;')
+for ($i = 1; $i -le 2498; $i++) {
+    $lines.Add("var v$i = $i * 3 + 12 / 4 - 2;")
+    $lines.Add("acc = acc + v$i * 2 - 1;")
+}
+$lines.Add('acc;')
+[System.IO.File]::WriteAllLines("$PWD\stress.blt", $lines)
+```
+
+**Compilation**
+```
+Lexing time: 1149600 nanoseconds.
+Or: 1.1496 ms.
+ASTgen time: 1305100 nanoseconds.
+Or: 1.3051 ms.
+Checking time: 196500 nanoseconds.
+Or: 0.1965 ms.
+Codegen time: 376800 nanoseconds.
+Or: 0.3768 ms.
+```
+
+**Execution**
+```
+VM Execution time: 68500 nanoseconds.
+Or: 0.0685 ms.
+```
+
+## Contribute a Benchmark
+
+Want to share how Bolt runs on your machine?
+
+1. Create a `benchmark/` folder in the root directory (if it doesn't exist yet).
+2. Run the exact same benchmark files in **Release** mode and copy this template with your own environment details, date, and timings.
+3. Name your file `BENCH-<OS>-<CPU>-<COMPILER>.md` (for example, `BENCH-WIN11-I5-MSVC.md`).
+4. Open a Pull Request!
+
+> Important! Follow naming conventions already used by other files and don't repeat a benchmark already done! If you do, update it if it's too old, but don't create a new file for it!
