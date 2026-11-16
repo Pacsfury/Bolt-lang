@@ -72,7 +72,7 @@
       "patterns": [
         {
           "name": "keyword.control.return.blt",
-          "match": "\\b(ret|write)\\b"
+          "match": "\\b(ret|write|read)\\b"
         },
         {
           "name": "keyword.control.conditional.blt",
