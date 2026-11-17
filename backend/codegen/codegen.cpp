@@ -19,7 +19,7 @@ void emit_u32(std::vector<uint8_t>& out, uint32_t v) {
 }
 }  // namespace
 
-std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST& ast, const std::string& path) {
+std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST& ast) {
     size_t cpoolidx = 0;
     std::vector<uint8_t> bytecode;
     std::vector<uint8_t> cpool;

@@ -25,7 +25,7 @@ void normalRun(std::string file, std::string out) {
     const AST ast = createAST(tokenize(content));
 
     checkAST(ast);
-    const auto bytecode = generateBytecode(ast, out);
+    const auto bytecode = generateBytecode(ast);
 
     std::ofstream output(out, std::ios::binary);
     if (!output) {
@@ -61,7 +61,7 @@ void debugRun(std::string file, std::string out) {
     show(ast);
 
     checkAST(ast);
-    const auto bytecode = generateBytecode(ast, out);
+    const auto bytecode = generateBytecode(ast);
 
     std::ofstream output(out, std::ios::binary);
     if (!output) {
