@@ -32,10 +32,6 @@ void checkAST(const AST& ast) {
                                std::holds_alternative<VarRead>(data) ||
                                std::holds_alternative<iBinOpNode>(data);
                     };
-                    if ((value.op != '+' && value.op != '-' && value.op != '*' && value.op != '/') ||
-                        !is_expression(value.left) || !is_expression(value.right)) {
-                        throwError("Bolt Compile Error: Invalid integer binary operation");
-                    }
                 } else if constexpr (std::is_same_v<T, ReadNode>) {
                     checkAssignment(symbol_table, value.var_idx, ast.strings[value.var_idx]);
                 }
