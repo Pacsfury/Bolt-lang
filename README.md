@@ -75,7 +75,7 @@ bolt -d "var name = 'a';" -o out
 ```bash
 bolt check in -o out
 ```
-Useful for IDE/editor checkers, builds and checks the AST, but generates no bytecode.
+Useful for IDE/editor checkers. Builds and checks the AST, but generates no bytecode.
 
 ---
 
