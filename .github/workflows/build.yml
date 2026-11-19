@@ -1,0 +1,90 @@
+name: CMake checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  language:
+    name: Language checks (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake (single-config generators)
+        if: runner.os != 'Windows'
+        run: cmake -S . -B build-ci -DCMAKE_BUILD_TYPE=Release
+
+      - name: Configure CMake (Visual Studio)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build-ci
+
+      - name: Build Bolt compiler
+        run: cmake --build build-ci --config Release --target bolt --parallel
+
+      - name: Check existing language examples
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            bolt="./build-ci/Release/bolt.exe"
+          else
+            bolt="./build-ci/bolt"
+          fi
+          "$bolt" check examples/math.blt
+          "$bolt" check examples/io.blt
+
+  vm:
+    name: VM smoke test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake (single-config generators)
+        if: runner.os != 'Windows'
+        run: cmake -S . -B build-ci -DCMAKE_BUILD_TYPE=Release
+
+      - name: Configure CMake (Visual Studio)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build-ci
+
+      - name: Build compiler and VM
+        run: cmake --build build-ci --config Release --target bolt bvm --parallel
+
+      - name: Compile and run existing arithmetic example
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            bolt="./build-ci/Release/bolt.exe"
+            bvm="./build-ci/Release/bvm.exe"
+          else
+            bolt="./build-ci/bolt"
+            bvm="./build-ci/bvm"
+          fi
+          "$bolt" build examples/math.blt -o main.bvm
+          if "$bvm" > vm-output.txt; then
+            echo "Expected the arithmetic example to return a non-zero result"
+            exit 1
+          fi
+          grep -q '^VM Execution time:' vm-output.txt
