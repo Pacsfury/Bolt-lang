@@ -63,7 +63,11 @@ static FILE* open_self_executable(void) {
 #else
 #include <time.h>
 #include <sys/types.h>
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#else
 #include <unistd.h>
+#endif
 typedef struct timespec TimerPoint;
 
 static int timer_init(void) {
@@ -96,12 +100,29 @@ static BoltFileOffset tell_file(FILE* file) {
 }
 
 static FILE* open_self_executable(void) {
+#if defined(__APPLE__)
+    uint32_t path_size = 0;
+    _NSGetExecutablePath(NULL, &path_size);
+    if (path_size == 0)
+        return NULL;
+
+    char* path = malloc(path_size);
+    if (!path)
+        return NULL;
+
+    FILE* file = _NSGetExecutablePath(path, &path_size) == 0
+                     ? fopen(path, "rb")
+                     : NULL;
+    free(path);
+    return file;
+#else
     char path[4096];
     ssize_t length = readlink("/proc/self/exe", path, sizeof(path) - 1);
     if (length <= 0 || (size_t)length >= sizeof(path) - 1)
         return NULL;
     path[length] = '\0';
     return fopen(path, "rb");
+#endif
 }
 #endif
 
