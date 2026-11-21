@@ -68,6 +68,8 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
                         case '-': operation = OP_SUB; break;
                         case '*': operation = OP_MUL; break;
                         case '/': operation = OP_DIV; break;
+                        case '=': operation = OP_EQU; break;
+                        case '!': operation = OP_NEQ; break;
                     }
                     emit_u8(bytecode, operation);
                 } else if constexpr (std::is_same_v<T, ReadNode>) {

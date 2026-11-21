@@ -52,6 +52,21 @@ std::vector<Token> tokenize(const std::string& src) {
                 t.type = tokens::slash;
                 break;
             case '=':
+                if (i + 1 < length && src[i + 1] == '=') {
+                    t.type = tokens::equalequal;
+                    i += 2;
+                    result.push_back(t);
+                    continue;
+                }
+                t.type = tokens::equal;
+                break;
+            case '!':
+                if (i + 1 < length && src[i + 1] == '=') {
+                    t.type = tokens::notequal;
+                    i += 2;
+                    result.push_back(t);
+                    continue;
+                }
                 t.type = tokens::equal;
                 break;
             case ';':
@@ -87,7 +102,7 @@ std::vector<Token> tokenize(const std::string& src) {
             }
         } else {
             while (i < length && actual != ' ' && actual != '\t' && actual != '\n' && actual != '\r' && actual != '+' &&
-                   actual != '-' && actual != '*' && actual != '/' && actual != '=' && actual != ';') {
+                   actual != '-' && actual != '*' && actual != '/' && actual != '=' && actual != '!' && actual != ';') {
                 if (++i >= length) {
                     break;
                 }

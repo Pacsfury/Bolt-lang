@@ -1,0 +1,7 @@
+/*
+    examples/
+        equality.blt
+            -- Showcasing Bolt equality operations
+*/
+
+1+1==2*1!=0==0; // Should return 0

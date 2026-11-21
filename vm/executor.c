@@ -184,7 +184,7 @@ void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
         [OP_PUSH] = &&L_PUSH,  [OP_POP] = &&L_POP, [OP_ADD] = &&L_ADD,   [OP_SUB] = &&L_SUB,
         [OP_MUL] = &&L_MUL,    [OP_DIV] = &&L_DIV, [OP_HALT] = &&L_HALT, [OP_STORE] = &&L_STORE, [OP_LOAD] = &&L_LOAD,
         [OP_DEL] = &&L_DEL, [OP_PRINT] = &&L_PRINT, [OP_EQU] = &&L_EQU, [OP_READ] = &&L_READ,
-        [OP_PRINT_VAR] = &&L_PRINT_VAR
+        [OP_NEQ] = &&L_NEQ, [OP_PRINT_VAR] = &&L_PRINT_VAR
     };
 #define NEXT() goto* dispatch[*ip++]
 #define CASE(name) L_##name:
@@ -342,6 +342,14 @@ void execute(DynamicStack* restrict s, const uint8_t* restrict code) {
         int right = *--sp;
         int left = *--sp;
         *sp++ = left == right;
+        NEXT();
+    }
+
+    CASE(NEQ) {
+        assert(sp - base >= 2);
+        int right = *--sp;
+        int left = *--sp;
+        *sp++ = left != right;
         NEXT();
     }
 

@@ -21,6 +21,9 @@ const Token& consume_token(ParserState& state) {
 
 int operator_precedence(tokens type) {
     switch (type) {
+        case tokens::notequal:
+        case tokens::equalequal:
+            return 0;
         case tokens::plus:
         case tokens::minus:
             return 1;
@@ -34,6 +37,10 @@ int operator_precedence(tokens type) {
 
 char operator_character(tokens type) {
     switch (type) {
+        case tokens::notequal:
+            return '!';
+        case tokens::equalequal:
+            return '=';
         case tokens::plus:
             return '+';
         case tokens::minus:
@@ -98,7 +105,7 @@ NodeId parse_expression(ParserState& state, AST& ast, int minimum_precedence) {
 }  // namespace
 
 NodeId parse_expression(ParserState& state, AST& ast) {
-    return parse_expression(state, ast, 1);
+    return parse_expression(state, ast, 0);
 }
 
 AST createAST(const std::vector<Token>& tokens) {

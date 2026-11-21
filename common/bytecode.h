@@ -16,6 +16,7 @@ typedef enum {
     OP_LOAD,
     OP_DEL,
     OP_EQU,
+    OP_NEQ,
 
     OP_PRINT,
     OP_READ,

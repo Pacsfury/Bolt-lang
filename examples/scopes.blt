@@ -1,6 +1,11 @@
+/*
+    examples/
+        scopes.blt
+            -- Showcasing basic scope logic
+*/
 var name = "hello";
 {
     var abc = "abcde";
-    write name; // workds
+    write name; // works
 }
-//write abc wouldn't work
+// write abc wouldn't work
