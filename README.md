@@ -305,12 +305,15 @@ fn add(a: i32, b: i32) -> i32 {
 var answer = add(10, 20);
 ```
 
+Bolt currently supports scopes.
+
 ## Examples
 
 Example programs are in [`examples/`](examples/):
 
 - [`examples/io.blt`](examples/io.blt) - input and output
 - [`examples/math.blt`](examples/math.blt) - arithmetic
+- [`examples/scopes.blt`](examples/scopes.blt) - scopes
 
 More examples as new features keep coming.
 
