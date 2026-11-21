@@ -64,7 +64,18 @@ NodeId parse_primary(ParserState& state, AST& ast) {
         return ast.add_node(Node{lit});
     }
     if (current.type == tokens::identifier) {
-        VarRead read{ast.add_string(std::string(current.value))};
+        const int name_index = ast.add_string(std::string(current.value));
+        int runtime_index = -1;
+        if (state.runtime_scopes != nullptr) {
+            for (auto it = state.runtime_scopes->rbegin(); it != state.runtime_scopes->rend(); ++it) {
+                const auto found = it->find(std::string(current.value));
+                if (found != it->end()) {
+                    runtime_index = found->second;
+                    break;
+                }
+            }
+        }
+        VarRead read{name_index, runtime_index};
         return ast.add_node(Node{read});
     }
 
@@ -94,9 +105,13 @@ AST createAST(const std::vector<Token>& tokens) {
     AST ast;
     ast.nodes.reserve(tokens.size());
     ast.strings.reserve(tokens.size());
-    ParserState state{0, tokens};
     std::vector<int> string_values;
     std::vector<bool> runtime_string_values;
+    size_t scope_depth = 0;
+    std::vector<std::unordered_map<std::string, int>> runtime_scopes;
+    runtime_scopes.emplace_back();
+    int next_runtime_slot = 0;
+    ParserState state{0, tokens, &runtime_scopes, &next_runtime_slot};
 
     auto ensure_variable_slot = [&](int name_index) {
         const size_t required_size = static_cast<size_t>(name_index) + 1;
@@ -129,6 +144,21 @@ AST createAST(const std::vector<Token>& tokens) {
         const Token& actual = peek_token(state);
 
         switch (actual.type) {
+            case tokens::scope_begin:
+                consume_token(state);
+                ast.add_node(Node{ScopeBegin{}});
+                ++scope_depth;
+                runtime_scopes.emplace_back();
+                break;
+            case tokens::scope_end:
+                if (scope_depth == 0) {
+                    throwError("Bolt Syntax Error: unmatched '}'");
+                }
+                consume_token(state);
+                ast.add_node(Node{ScopeEnd{}});
+                --scope_depth;
+                runtime_scopes.pop_back();
+                break;
             case tokens::var:
             case tokens::constant: {
                 const bool is_const = consume_token(state).type == tokens::constant;
@@ -144,7 +174,9 @@ AST createAST(const std::vector<Token>& tokens) {
 
                 const Token& initializer = peek_token(state);
                 const int name_index = ast.add_string(std::string(name_token.value));
-                VarDecl vardecl{parse_expression(state, ast), name_index, is_const};
+                const int runtime_index = next_runtime_slot++;
+                runtime_scopes.back()[std::string(name_token.value)] = runtime_index;
+                VarDecl vardecl{parse_expression(state, ast), name_index, is_const, runtime_index};
                 remember_string_value(name_index, initializer);
                 ast.add_node(Node{vardecl});
 
@@ -176,7 +208,15 @@ AST createAST(const std::vector<Token>& tokens) {
                                "' is used before declaration");
                 }
                 const int name_index = name->second;
-                VarChange varchange{parse_expression(state, ast), name_index};
+                int runtime_index = -1;
+                for (auto it = runtime_scopes.rbegin(); it != runtime_scopes.rend(); ++it) {
+                    const auto found = it->find(std::string(name_token.value));
+                    if (found != it->end()) {
+                        runtime_index = found->second;
+                        break;
+                    }
+                }
+                VarChange varchange{parse_expression(state, ast), name_index, runtime_index};
                 remember_string_value(name_index, initializer);
                 ast.add_node(Node{varchange});
 
@@ -198,6 +238,17 @@ AST createAST(const std::vector<Token>& tokens) {
                 int output_name_index = -1;
 
                 if (output.type == tokens::identifier) {
+                    bool is_in_scope = false;
+                    for (auto it = runtime_scopes.rbegin(); it != runtime_scopes.rend(); ++it) {
+                        if (it->find(std::string(output.value)) != it->end()) {
+                            is_in_scope = true;
+                            break;
+                        }
+                    }
+                    if (!is_in_scope) {
+                        throwError("Bolt Compile Error: Variable '" + std::string(output.value) +
+                                   "' is used before declaration");
+                    }
                     const auto name = ast.string_to_index.find(std::string(output.value));
                     if (name == ast.string_to_index.end() ||
                         static_cast<size_t>(name->second) >= string_values.size() ||
@@ -207,7 +258,15 @@ AST createAST(const std::vector<Token>& tokens) {
                     }
                     output_name_index = name->second;
                     if (runtime_string_values[name->second]) {
-                        WriteNode node{"", name->second};
+                        int runtime_index = -1;
+                        for (auto it = runtime_scopes.rbegin(); it != runtime_scopes.rend(); ++it) {
+                            const auto found = it->find(std::string(output.value));
+                            if (found != it->end()) {
+                                runtime_index = found->second;
+                                break;
+                            }
+                        }
+                        WriteNode node{"", name->second, runtime_index};
                         ast.add_node(Node{node});
                     } else {
                         node_value = ast.strings[string_values[name->second]];
@@ -239,6 +298,13 @@ AST createAST(const std::vector<Token>& tokens) {
                 node.var_idx = ast.add_string(std::string(name_token.value));
                 ensure_variable_slot(node.var_idx);
                 runtime_string_values[node.var_idx] = true;
+                for (auto it = runtime_scopes.rbegin(); it != runtime_scopes.rend(); ++it) {
+                    const auto found = it->find(std::string(name_token.value));
+                    if (found != it->end()) {
+                        node.runtime_index = found->second;
+                        break;
+                    }
+                }
 
                 if (peek_token(state).type != tokens::semi) {
                     throwError("Bolt Syntax Error: expected ';' after statement");
@@ -267,6 +333,9 @@ AST createAST(const std::vector<Token>& tokens) {
         }
     }
 eof:;
+    if (scope_depth != 0) {
+        throwError("Bolt Syntax Error: unmatched '{'");
+    }
 
     return ast;
 }

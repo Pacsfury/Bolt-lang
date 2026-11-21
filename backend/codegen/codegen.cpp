@@ -34,22 +34,24 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
             [&](const auto& value) {
                 using T = std::decay_t<decltype(value)>;
 
-                if constexpr (std::is_same_v<T, VarDecl>) {
+                if constexpr (std::is_same_v<T, ScopeBegin> || std::is_same_v<T, ScopeEnd>) {
+                    // Scope markers are compile-time only.
+                } else if constexpr (std::is_same_v<T, VarDecl>) {
                     emit_u8(bytecode, OP_STORE);
-                    emit_u32(bytecode, static_cast<uint32_t>(value.name_index));
+                    emit_u32(bytecode, static_cast<uint32_t>(value.runtime_index >= 0 ? value.runtime_index : value.name_index));
                 } else if constexpr (std::is_same_v<T, VarChange>) {
                     emit_u8(bytecode, OP_STORE);
-                    emit_u32(bytecode, static_cast<uint32_t>(value.name_index));
+                    emit_u32(bytecode, static_cast<uint32_t>(value.runtime_index >= 0 ? value.runtime_index : value.name_index));
                 } else if constexpr (std::is_same_v<T, VarRead>) {
                     emit_u8(bytecode, OP_LOAD);
-                    emit_u32(bytecode, static_cast<uint32_t>(value.name_index));
+                    emit_u32(bytecode, static_cast<uint32_t>(value.runtime_index >= 0 ? value.runtime_index : value.name_index));
                 } else if constexpr (std::is_same_v<T, Literal>) {
                     emit_u8(bytecode, OP_PUSH);
                     emit_u32(bytecode, static_cast<uint32_t>(value.value));
                 } else if constexpr (std::is_same_v<T, WriteNode>) {
                     if (value.variable_index >= 0) {
                         emit_u8(bytecode, OP_LOAD);
-                        emit_u32(bytecode, static_cast<uint32_t>(value.variable_index));
+                        emit_u32(bytecode, static_cast<uint32_t>(value.runtime_index >= 0 ? value.runtime_index : value.variable_index));
                         emit_u8(bytecode, OP_PRINT_VAR);
                     } else {
                         cpoolidx++;
@@ -71,7 +73,7 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
                 } else if constexpr (std::is_same_v<T, ReadNode>) {
                     emit_u8(bytecode, OP_READ);
                     emit_u8(bytecode, OP_STORE);
-                    emit_u32(bytecode, static_cast<uint32_t>(value.var_idx));
+                    emit_u32(bytecode, static_cast<uint32_t>(value.runtime_index >= 0 ? value.runtime_index : value.var_idx));
                 }
 
             },

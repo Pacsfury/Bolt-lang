@@ -3,7 +3,10 @@
 #include <string>
 #include <vector>
 
-enum class tokens { var, c_int, plus, minus, star, slash, c_str, identifier, equal, eof, c_char, semi, write, constant, read };
+enum class tokens {
+    var, c_int, plus, minus, star, slash, c_str, identifier, equal, eof, c_char, semi,
+    write, constant, read, scope_begin, scope_end
+};
 
 struct Token {
     tokens type;

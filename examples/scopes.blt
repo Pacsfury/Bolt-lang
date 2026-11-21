@@ -1,0 +1,6 @@
+var name = "hello";
+{
+    var abc = "abcde";
+    write name; // workds
+}
+//write abc wouldn't work

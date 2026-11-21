@@ -72,8 +72,8 @@ python -m pip install python-dotenv
 Run the scripts from the repository root:
 
 ```bash
-python build/build.py lang
-python build/build.py vm
+python pybuild/build.py lang
+python pybuild/build.py vm
 ```
 
 These commands build `bolt` and `bvm`, respectively. Additional targets are:

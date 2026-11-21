@@ -15,22 +15,26 @@ struct Literal {
 
 struct VarRead {
     int name_index;
+    int runtime_index = -1;
 };
 
 struct VarDecl {
     NodeId initializer;
     int name_index;
     bool isconst = false;
+    int runtime_index = -1;
 };
 
 struct VarChange {
     NodeId initializer;
     int name_index;
+    int runtime_index = -1;
 };
 
 struct WriteNode {
     std::string str;
     int variable_index = -1;
+    int runtime_index = -1;
 };
 
 struct iBinOpNode {
@@ -41,10 +45,14 @@ struct iBinOpNode {
 
 struct ReadNode {
     NodeId var_idx;
+    int runtime_index = -1;
 };
 
+struct ScopeBegin {};
+struct ScopeEnd {};
+
 struct Node {
-    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode, ReadNode> data;
+    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode, ReadNode, ScopeBegin, ScopeEnd> data;
 };
 
 struct AST {
@@ -72,6 +80,8 @@ struct AST {
 struct ParserState {
     size_t index = 0;
     const std::vector<Token>& tokens;
+    std::vector<std::unordered_map<std::string, int>>* runtime_scopes = nullptr;
+    int* next_runtime_slot = nullptr;
 
     Token peek() const {
         if (index >= tokens.size())

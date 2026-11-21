@@ -8,7 +8,7 @@ def build():
     
     compiler = os.getenv("CPP_COMPILER", "g++").upper()
 
-    source_files = glob.glob("debug/*.cpp") + glob.glob("frontend/*/*.cpp") + glob.glob("runner/*.cpp") + ["main.cpp"]
+    source_files = glob.glob("backend/codegen/*.cpp")
     
     if not source_files:
         print("Files not found.")
@@ -31,7 +31,7 @@ def build():
     
     try:
         result = subprocess.run(command, check=True, text=True)
-        print("Bolt compiled")
+        print("Bolt backend compiled")
     except subprocess.CalledProcessError as e:
         print(f"Error compilating: {e.returncode}")
     except FileNotFoundError:

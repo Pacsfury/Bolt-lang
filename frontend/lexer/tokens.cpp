@@ -57,6 +57,12 @@ std::vector<Token> tokenize(const std::string& src) {
             case ';':
                 t.type = tokens::semi;
                 break;
+            case '{':
+                t.type = tokens::scope_begin;
+                break;
+            case '}':
+                t.type = tokens::scope_end;
+                break;
             default:
                 is_single_char = false;
                 break;
