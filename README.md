@@ -291,7 +291,7 @@ write status;
 var result = 10 + 20 * 30 - 40 / 2;
 ```
 
-Bolt currently supports `+`, `-`, `*`, and `/`.
+Bolt currently supports `+`, `-`, `*`, and `/`, and `==`, `!=`.
 
 ### Functions
 
