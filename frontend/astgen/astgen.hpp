@@ -52,7 +52,7 @@ struct ScopeBegin {};
 struct ScopeEnd {};
 
 struct IfStmt {
-    NodeId condifion;
+    NodeId condition;
     NodeId then_do;
     NodeId else_do;
 };

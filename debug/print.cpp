@@ -63,7 +63,7 @@ void show(const AST& ast) {
         } else if (auto binop = std::get_if<iBinOpNode>(&n.data)) {
             std::cout << "  iBinOpNode: " << "[left] "<< binop->left << " [right] " << binop->right << " [op] " << binop->op << "\n";
         } else if (auto ifstmt = std::get_if<IfStmt>(&n.data)) {
-            std::cout << "  IfStmt: [condition] " << ifstmt->condifion << " [then] " << ifstmt->then_do
+            std::cout << "  IfStmt: [condition] " << ifstmt->condition << " [then] " << ifstmt->then_do
                       << " [else] ";
             if (ifstmt->else_do == static_cast<NodeId>(-1)) {
                 std::cout << "none\n";

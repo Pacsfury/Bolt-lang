@@ -51,7 +51,7 @@ void checkAST(const AST& ast) {
                     }
                 } else if constexpr (std::is_same_v<T, IfStmt>) {
                     const NodeId no_else = static_cast<NodeId>(-1);
-                    if (!is_expression(value.condifion, index)) {
+                    if (!is_expression(value.condition, index)) {
                         throwError("Bolt Compile Error: Invalid if condition");
                     }
                     if (value.then_do != index + 1 || value.then_do >= ast.nodes.size() ||
