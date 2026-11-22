@@ -313,6 +313,7 @@ Example programs are in [`examples/`](examples/):
 
 - [`examples/io.blt`](examples/io.blt) - input and output
 - [`examples/math.blt`](examples/math.blt) - arithmetic
+- [`examples/equality.blt`](examples/equality.blt) - equality operators (== and !=)
 - [`examples/scopes.blt`](examples/scopes.blt) - scopes
 
 More examples as new features keep coming.
