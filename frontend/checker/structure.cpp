@@ -11,6 +11,14 @@ void checkAST(const AST& ast) {
     ScopeTable scopes;
     enterScope(scopes);
     size_t scope_depth = 0;
+    const auto is_expression = [&](NodeId id, size_t before) {
+        if (id >= before || id >= ast.nodes.size()) {
+            return false;
+        }
+        const auto& data = ast.nodes[id].data;
+        return std::holds_alternative<Literal>(data) || std::holds_alternative<VarRead>(data) ||
+               std::holds_alternative<iBinOpNode>(data);
+    };
 
     for (size_t index = 0; index < ast.nodes.size(); ++index) {
         const Node& n = ast.nodes[index];
@@ -38,17 +46,22 @@ void checkAST(const AST& ast) {
                         checkVariableRead(scopes, value.variable_index, ast.strings[value.variable_index]);
                     }
                 } else if constexpr (std::is_same_v<T, iBinOpNode>) {
-                    const auto is_expression = [&](NodeId id) {
-                        if (id >= index) {
-                            return false;
-                        }
-                        const auto& data = ast.nodes[id].data;
-                        return std::holds_alternative<Literal>(data) ||
-                               std::holds_alternative<VarRead>(data) ||
-                               std::holds_alternative<iBinOpNode>(data);
-                    };
-                    if (!is_expression(value.left) || !is_expression(value.right)) {
+                    if (!is_expression(value.left, index) || !is_expression(value.right, index)) {
                         throwError("Bolt Compile Error: Invalid integer binary operation");
+                    }
+                } else if constexpr (std::is_same_v<T, IfStmt>) {
+                    const NodeId no_else = static_cast<NodeId>(-1);
+                    if (!is_expression(value.condifion, index)) {
+                        throwError("Bolt Compile Error: Invalid if condition");
+                    }
+                    if (value.then_do != index + 1 || value.then_do >= ast.nodes.size() ||
+                        !std::holds_alternative<ScopeBegin>(ast.nodes[value.then_do].data)) {
+                        throwError("Bolt Compile Error: Invalid if body");
+                    }
+                    if (value.else_do != no_else &&
+                        (value.else_do <= value.then_do || value.else_do >= ast.nodes.size() ||
+                         !std::holds_alternative<ScopeBegin>(ast.nodes[value.else_do].data))) {
+                        throwError("Bolt Compile Error: Invalid else body");
                     }
                 } else if constexpr (std::is_same_v<T, ReadNode>) {
                     checkAssignment(scopes, value.var_idx, ast.strings[value.var_idx]);

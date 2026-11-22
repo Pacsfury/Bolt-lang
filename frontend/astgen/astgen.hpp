@@ -51,8 +51,14 @@ struct ReadNode {
 struct ScopeBegin {};
 struct ScopeEnd {};
 
+struct IfStmt {
+    NodeId condifion;
+    NodeId then_do;
+    NodeId else_do;
+};
+
 struct Node {
-    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode, ReadNode, ScopeBegin, ScopeEnd> data;
+    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode, ReadNode, ScopeBegin, ScopeEnd, IfStmt> data;
 };
 
 struct AST {

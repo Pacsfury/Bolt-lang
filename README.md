@@ -19,6 +19,7 @@ and compiling source into bytecode for the Bolt Virtual Machine (BVM).
 - Integer and arithmetic expressions
 - Debug and timing build modes
 - Standalone executables containing the VM and compiled program
+- If-else
 
 ## Requirements
 
@@ -315,6 +316,7 @@ Example programs are in [`examples/`](examples/):
 - [`examples/math.blt`](examples/math.blt) - arithmetic
 - [`examples/equality.blt`](examples/equality.blt) - equality operators (== and !=)
 - [`examples/scopes.blt`](examples/scopes.blt) - scopes
+- [`examples/if-else.blt`](examples/if-else.blt) - control flow
 
 More examples as new features keep coming.
 

@@ -1,0 +1,11 @@
+/*
+    examples/
+        if-else.blt
+            -- Showcasing basic control flow
+*/
+var age = "18";
+if age == "18" {
+    write "You are 18";
+} else {
+    write "You are not 18";
+}

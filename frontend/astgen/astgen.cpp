@@ -117,6 +117,11 @@ AST createAST(const std::vector<Token>& tokens) {
     size_t scope_depth = 0;
     std::vector<std::unordered_map<std::string, int>> runtime_scopes;
     runtime_scopes.emplace_back();
+    struct IfScope {
+        NodeId node;
+        size_t depth;
+    };
+    std::vector<IfScope> if_scopes;
     int next_runtime_slot = 0;
     ParserState state{0, tokens, &runtime_scopes, &next_runtime_slot};
 
@@ -165,7 +170,42 @@ AST createAST(const std::vector<Token>& tokens) {
                 ast.add_node(Node{ScopeEnd{}});
                 --scope_depth;
                 runtime_scopes.pop_back();
+                if (!if_scopes.empty() && if_scopes.back().depth == scope_depth + 1) {
+                    IfScope& if_scope = if_scopes.back();
+                    if (peek_token(state).type == tokens::identifier && peek_token(state).value == "else") {
+                        consume_token(state);
+                        if (peek_token(state).type != tokens::scope_begin) {
+                            throwError("Bolt Syntax Error: expected '{' after 'else'");
+                        }
+                        consume_token(state);
+                        std::get<IfStmt>(ast.nodes[if_scope.node].data).else_do =
+                            static_cast<NodeId>(ast.nodes.size());
+                        ast.add_node(Node{ScopeBegin{}});
+                        ++scope_depth;
+                        runtime_scopes.emplace_back();
+                        if_scope.depth = scope_depth;
+                    } else {
+                        if_scopes.pop_back();
+                    }
+                }
                 break;
+            case tokens::if_stmt: {
+                consume_token(state);
+                const NodeId condition = parse_expression(state, ast);
+                if (peek_token(state).type != tokens::scope_begin) {
+                    throwError("Bolt Syntax Error: expected '{' after if condition");
+                }
+
+                const NodeId then_scope = static_cast<NodeId>(ast.nodes.size() + 1);
+                const NodeId no_else = static_cast<NodeId>(-1);
+                const NodeId if_node = ast.add_node(Node{IfStmt{condition, then_scope, no_else}});
+                consume_token(state);
+                ast.add_node(Node{ScopeBegin{}});
+                ++scope_depth;
+                runtime_scopes.emplace_back();
+                if_scopes.push_back(IfScope{if_node, scope_depth});
+                break;
+            }
             case tokens::var:
             case tokens::constant: {
                 const bool is_const = consume_token(state).type == tokens::constant;
