@@ -1,0 +1,24 @@
+/*
+    examples/
+        questions.blt
+            -- Asks some random questions
+*/
+
+var ans1 = "";
+var ans2 = "";
+var ans3 = "";
+write "What's your favourite color?";
+read ans1;
+write "What's your favourite number?";
+read ans2;
+write "What's your favourite animal?";
+read ans3;
+var want = "";
+write "Do you want to know your answers now? (Y/n)";
+read want;
+write "You favourite color is:";
+write ans1;
+write "You favourite number is:";
+write ans2;
+write "You favourite animal is:";
+write ans3;

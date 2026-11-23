@@ -317,6 +317,7 @@ Example programs are in [`examples/`](examples/):
 - [`examples/equality.blt`](examples/equality.blt) - equality operators (== and !=)
 - [`examples/scopes.blt`](examples/scopes.blt) - scopes
 - [`examples/if-else.blt`](examples/if-else.blt) - control flow
+- [`examples/questions.blt`](examples/questions.blt) - io and variables
 
 More examples as new features keep coming.
 
