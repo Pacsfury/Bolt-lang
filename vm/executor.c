@@ -43,7 +43,7 @@ static int cpool_reserve(size_t required) {
     return 0;
 }
 
-static int cpool_append_n(const char* value, size_t length) {
+static int cpool_store_n(const char* value, size_t length) {
     if (cpool_count >= INT_MAX) {
         fprintf(stderr, "BVM CPOOL Error: constant pool is full.\n");
         return -1;
@@ -63,6 +63,15 @@ static int cpool_append_n(const char* value, size_t length) {
     size_t index = ++cpool_count;
     cpool_entries[index] = copy;
     return (int)index;
+}
+
+static int cpool_append_n(const char* value, size_t length) {
+    for (size_t i = 1; i <= cpool_count; ++i) {
+        if (cpool_entries[i] && strlen(cpool_entries[i]) == length &&
+            memcmp(cpool_entries[i], value, length) == 0)
+            return (int)i;
+    }
+    return cpool_store_n(value, length);
 }
 
 int cpool_append(const char* value) {
@@ -114,7 +123,7 @@ int cpool_init(const uint8_t* data, size_t size) {
         size_t length = end - start;
         if (length > 0 && data[start + length - 1] == '\r')
             --length;
-        if (cpool_append_n((const char*)data + start, length) < 0) {
+        if (cpool_store_n((const char*)data + start, length) < 0) {
             cpool_destroy();
             return -1;
         }
