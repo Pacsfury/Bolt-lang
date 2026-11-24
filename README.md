@@ -306,6 +306,16 @@ fn add(a: i32, b: i32) -> i32 {
 var answer = add(10, 20);
 ```
 
+## If-else
+
+```bolt
+if cond {
+  ---
+} else {
+  ---
+}
+```
+
 Bolt currently supports scopes.
 
 ## Examples
