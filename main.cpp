@@ -24,8 +24,8 @@ int main(int argc, char* argv[]) {
         checkRun(std::string(args.getArg("check").value_or("main.blt")));
     }
 
-    if (args.hasArg("-d")) {
-        run(std::string(args.getArg("-d").value_or("")), OUTPUT);
+    if (args.hasArg("direct")) {
+        run(std::string(args.getArg("direct").value_or("")), OUTPUT);
     }
 
     if (args.hasArg("package")) {

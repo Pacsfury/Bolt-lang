@@ -192,7 +192,7 @@ This mode is intended for editors and other tooling.
 Compile a short source string without a source file:
 
 ```bash
-bolt -d "var name = 'a';" -o out.bvm
+bolt direct "var name = 'a';" -o out.bvm
 ```
 
 The available modes are not currently combinable.
