@@ -63,51 +63,19 @@ The Python build scripts are deprecated and remain available as a fallback
 for environments where CMake is not installed. The CMake build system is
 recommended because it is better maintained and supports all current targets.
 
-The scripts require Python 3, `python-dotenv`, and C and C++ compilers on
-your `PATH`. Install the Python dependency from the repository root:
-
 ```bash
 python -m pip install python-dotenv
-```
 
-Run the scripts from the repository root:
-
-```bash
 python pybuild/build.py lang
 python pybuild/build.py vm
+python pybuild/build.py frontend
+python pybuild/build.py backend
 ```
-
-These commands build `bolt` and `bvm`, respectively. Additional targets are:
-
-| Target | Script purpose |
-| --- | --- |
-| `lang` | Build the complete Bolt compiler |
-| `vm` | Build the Bolt Virtual Machine |
-| `frontend` | Build the frontend as a standalone target |
-| `backend` | Build the backend as a standalone target |
 
 The Python scripts use these environment variables:
 
 - `CPP_COMPILER`: `G++`, `CLANG`, or `MSVC`/`CL`
 - `C_COMPILER`: `GCC`, `CLANG`, or `MSVC`/`CL`
-
-You can set them in `.env` or in the shell. For example:
-
-```bash
-# .env
-CPP_COMPILER=G++
-C_COMPILER=GCC
-```
-
-```bash
-# Windows PowerShell
-$env:CPP_COMPILER = "MSVC"
-$env:C_COMPILER = "MSVC"
-```
-
-The standalone frontend and backend script targets are not a complete
-replacement for CMake's library targets and may not remain available.
-Prefer CMake whenever possible.
 
 ## Quick Start
 
