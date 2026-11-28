@@ -125,6 +125,8 @@ std::vector<Token> tokenize(const std::string& src) {
                 t.type = tokens::constant;
             } else if (view == "if") {
                 t.type = tokens::if_stmt;
+            } else if (view == "while") {
+                t.type = tokens::while_stmt;
             } else if (token_len >= 2 && view.front() == view.back() &&
                        (view.front() == '"' || view.front() == '\'')) {
                 if (token_len == 3) {  // '"' + char + '"'

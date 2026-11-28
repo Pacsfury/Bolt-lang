@@ -170,18 +170,22 @@ AST createAST(const std::vector<Token>& tokens) {
                 runtime_scopes.pop_back();
                 if (!if_scopes.empty() && if_scopes.back().depth == scope_depth + 1) {
                     IfScope& if_scope = if_scopes.back();
-                    if (peek_token(state).type == tokens::identifier && peek_token(state).value == "else") {
-                        consume_token(state);
-                        if (peek_token(state).type != tokens::scope_begin) {
-                            throwError("Bolt Syntax Error: expected '{' after 'else'");
+                    if (std::holds_alternative<IfStmt>(ast.nodes[if_scope.node].data)) {
+                        if (peek_token(state).type == tokens::identifier && peek_token(state).value == "else") {
+                            consume_token(state);
+                            if (peek_token(state).type != tokens::scope_begin) {
+                                throwError("Bolt Syntax Error: expected '{' after 'else'");
+                            }
+                            consume_token(state);
+                            std::get<IfStmt>(ast.nodes[if_scope.node].data).else_do =
+                                static_cast<NodeId>(ast.nodes.size());
+                            ast.add_node(Node{ScopeBegin{}});
+                            ++scope_depth;
+                            runtime_scopes.emplace_back();
+                            if_scope.depth = scope_depth;
+                        } else {
+                            if_scopes.pop_back();
                         }
-                        consume_token(state);
-                        std::get<IfStmt>(ast.nodes[if_scope.node].data).else_do =
-                            static_cast<NodeId>(ast.nodes.size());
-                        ast.add_node(Node{ScopeBegin{}});
-                        ++scope_depth;
-                        runtime_scopes.emplace_back();
-                        if_scope.depth = scope_depth;
                     } else {
                         if_scopes.pop_back();
                     }
@@ -202,6 +206,22 @@ AST createAST(const std::vector<Token>& tokens) {
                 ++scope_depth;
                 runtime_scopes.emplace_back();
                 if_scopes.push_back(IfScope{if_node, scope_depth});
+                break;
+            }
+            case tokens::while_stmt: {
+                consume_token(state);
+                const NodeId condition = parse_expression(state, ast);
+                if (peek_token(state).type != tokens::scope_begin) {
+                    throwError("Bolt Syntax Error: expected '{' after while condition");
+                }
+
+                const NodeId code = static_cast<NodeId>(ast.nodes.size() + 1);
+                const NodeId while_node = ast.add_node(Node{WhileStmt{condition, code}});
+                consume_token(state);
+                ast.add_node(Node{ScopeBegin{}});
+                ++scope_depth;
+                runtime_scopes.emplace_back();
+                if_scopes.push_back(IfScope{while_node, scope_depth});
                 break;
             }
             case tokens::var:

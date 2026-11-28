@@ -10,7 +10,7 @@
 #include "print.hpp"
 
 std::string_view tokenToString(tokens type) {
-    static constexpr std::array<std::string_view, 20> token_names = {
+    static constexpr std::array<std::string_view, 21> token_names = {
         "var",         // 0
         "c_int",       // 1
         "plus",        // 2
@@ -30,7 +30,8 @@ std::string_view tokenToString(tokens type) {
         "scope_end",   // 16
         "equalequal",  // 17
         "notequal",    // 18
-        "if_stmt"      // 19
+        "if_stmt",     // 19
+        "while_stmt"   // 20
     };
 
     auto index = static_cast<size_t>(type);
@@ -62,6 +63,8 @@ void show(const AST& ast) {
             std::cout << "  WriteNode: " << write->str << "\n";
         } else if (auto binop = std::get_if<iBinOpNode>(&n.data)) {
             std::cout << "  iBinOpNode: " << "[left] "<< binop->left << " [right] " << binop->right << " [op] " << binop->op << "\n";
+        } else if (auto whilestmt = std::get_if<WhileStmt>(&n.data)) {
+            std::cout << "  WhileStmt: " << "[condition] "<< whilestmt->condition << " [do] " << whilestmt->code << "\n";
         } else if (auto ifstmt = std::get_if<IfStmt>(&n.data)) {
             std::cout << "  IfStmt: [condition] " << ifstmt->condition << " [then] " << ifstmt->then_do
                       << " [else] ";

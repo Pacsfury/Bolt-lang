@@ -8,9 +8,7 @@ namespace {
 std::string errorFile;
 }
 
-void setErrorFile(std::string file) {
-    errorFile = std::move(file);
-}
+void setErrorFile(std::string file) { errorFile = std::move(file); }
 
 void throwError(std::string msg) {
     if (!errorFile.empty()) {

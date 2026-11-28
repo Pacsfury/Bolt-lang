@@ -1,0 +1,9 @@
+/*
+    examples/
+        while.blt
+            -- While loops
+*/
+
+while 1==1 {
+    write "1==1, definitely";
+}

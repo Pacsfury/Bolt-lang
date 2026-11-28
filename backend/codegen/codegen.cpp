@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <type_traits>
@@ -35,6 +36,18 @@ struct IfPatch {
     size_t condition_target;
     size_t end_target = 0;
 };
+struct WhilePatch {
+    size_t body_end;
+    size_t condition_start;
+    size_t condition_target;
+};
+
+size_t expression_start(const AST& ast, NodeId node_id) {
+    if (const auto* operation = std::get_if<iBinOpNode>(&ast.nodes[node_id].data)) {
+        return std::min(expression_start(ast, operation->left), expression_start(ast, operation->right));
+    }
+    return node_id;
+}
 }  // namespace
 
 std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST& ast) {
@@ -57,9 +70,11 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
             scope_begins.pop_back();
         }
     }
-    std::vector<IfPatch> if_patches;
+    std::vector<size_t> node_code_offsets(ast.nodes.size());
+    std::vector<std::variant<IfPatch, WhilePatch>> control_patches;
 
     for (size_t index = 0; index < ast.nodes.size(); ++index) {
+        node_code_offsets[index] = code_offset(bytecode);
         const auto& node = ast.nodes[index];
         std::visit(
             [&](const auto& value) {
@@ -68,20 +83,31 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
                 if constexpr (std::is_same_v<T, ScopeBegin>) {
                     // Scope markers are compile-time only.
                 } else if constexpr (std::is_same_v<T, ScopeEnd>) {
-                    if (!if_patches.empty() && if_patches.back().then_end == index) {
-                        IfPatch& patch = if_patches.back();
-                        if (patch.else_end == ast.nodes.size()) {
-                            patch_u32(bytecode, patch.condition_target, code_offset(bytecode));
-                            if_patches.pop_back();
+                    if (!control_patches.empty()) {
+                        if (auto* patch = std::get_if<IfPatch>(&control_patches.back())) {
+                            if (patch->then_end == index) {
+                                if (patch->else_end == ast.nodes.size()) {
+                                    patch_u32(bytecode, patch->condition_target, code_offset(bytecode));
+                                    control_patches.pop_back();
+                                } else {
+                                    emit_u8(bytecode, OP_JMP);
+                                    patch->end_target = bytecode.size();
+                                    emit_u32(bytecode, 0);
+                                    patch_u32(bytecode, patch->condition_target, code_offset(bytecode));
+                                }
+                            } else if (patch->else_end == index) {
+                                patch_u32(bytecode, patch->end_target, code_offset(bytecode));
+                                control_patches.pop_back();
+                            }
                         } else {
-                            emit_u8(bytecode, OP_JMP);
-                            patch.end_target = bytecode.size();
-                            emit_u32(bytecode, 0);
-                            patch_u32(bytecode, patch.condition_target, code_offset(bytecode));
+                            const WhilePatch& while_patch = std::get<WhilePatch>(control_patches.back());
+                            if (while_patch.body_end == index) {
+                                emit_u8(bytecode, OP_JMP);
+                                emit_u32(bytecode, static_cast<uint32_t>(while_patch.condition_start));
+                                patch_u32(bytecode, while_patch.condition_target, code_offset(bytecode));
+                                control_patches.pop_back();
+                            }
                         }
-                    } else if (!if_patches.empty() && if_patches.back().else_end == index) {
-                        patch_u32(bytecode, if_patches.back().end_target, code_offset(bytecode));
-                        if_patches.pop_back();
                     }
                 } else if constexpr (std::is_same_v<T, VarDecl>) {
                     emit_u8(bytecode, OP_STORE);
@@ -131,7 +157,15 @@ std::pair<std::vector<uint8_t>, std::vector<uint8_t>> generateBytecode(const AST
                     const size_t then_end = scope_end_for_begin[value.then_do];
                     const size_t else_end =
                         value.else_do == no_else ? ast.nodes.size() : scope_end_for_begin[value.else_do];
-                    if_patches.push_back(IfPatch{then_end, else_end, condition_target});
+                    control_patches.push_back(IfPatch{then_end, else_end, condition_target});
+                } else if constexpr (std::is_same_v<T, WhileStmt>) {
+                    emit_u8(bytecode, OP_JZ);
+                    const size_t condition_target = bytecode.size();
+                    emit_u32(bytecode, 0);
+                    const size_t body_end = scope_end_for_begin[value.code];
+                    const size_t condition_node = expression_start(ast, value.condition);
+                    control_patches.push_back(
+                        WhilePatch{body_end, node_code_offsets[condition_node], condition_target});
                 }
 
             },

@@ -57,8 +57,13 @@ struct IfStmt {
     NodeId else_do;
 };
 
+struct WhileStmt {
+    NodeId condition;
+    NodeId code;
+};
+
 struct Node {
-    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode, ReadNode, ScopeBegin, ScopeEnd, IfStmt> data;
+    std::variant<Literal, VarRead, VarDecl, WriteNode, VarChange, iBinOpNode, ReadNode, ScopeBegin, ScopeEnd, IfStmt, WhileStmt> data;
 };
 
 struct AST {
