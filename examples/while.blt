@@ -4,6 +4,8 @@
             -- While loops
 */
 
-while 1==1 {
-    write "1==1, definitely";
+var idx = 1;
+while idx != 100000 {
+    write "iteration!";
+    idx = idx+1;
 }
