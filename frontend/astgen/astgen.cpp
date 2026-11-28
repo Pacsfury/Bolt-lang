@@ -58,34 +58,32 @@ char operator_character(tokens type) {
 NodeId parse_primary(ParserState& state, AST& ast) {
     const Token& current = consume_token(state);
 
-    if (current.type == tokens::c_int) {
-        Literal lit{std::stoi(std::string(current.value))};
-        return ast.add_node(Node{lit});
-    }
-    if (current.type == tokens::c_char) {
-        Literal lit{static_cast<unsigned char>(current.value[0])};
-        return ast.add_node(Node{lit});
-    }
-    if (current.type == tokens::c_str) {
-        Literal lit{ast.add_string(std::string(current.value))};
-        return ast.add_node(Node{lit});
-    }
-    if (current.type == tokens::identifier) {
-        const int name_index = ast.add_string(std::string(current.value));
-        int runtime_index = -1;
-        if (state.runtime_scopes != nullptr) {
-            for (auto it = state.runtime_scopes->rbegin(); it != state.runtime_scopes->rend(); ++it) {
-                const auto found = it->find(std::string(current.value));
-                if (found != it->end()) {
-                    runtime_index = found->second;
-                    break;
+    switch (current.type) {
+        case tokens::c_int: {
+            return ast.add_node(Node{Literal{std::stoi(std::string(current.value))}});
+        }
+        case tokens::c_char: {
+            return ast.add_node(Node{Literal{static_cast<unsigned char>(current.value[0])}});
+        }
+        case tokens::c_str: {
+            return ast.add_node(Node{Literal{ast.add_string(std::string(current.value))}});
+        }
+        case tokens::identifier: {
+            const int name_index = ast.add_string(std::string(current.value));
+            int runtime_index = -1;
+            if (state.runtime_scopes != nullptr) {
+                for (auto it = state.runtime_scopes->rbegin(); it != state.runtime_scopes->rend(); ++it) {
+                    const auto found = it->find(std::string(current.value));
+                    if (found != it->end()) {
+                        runtime_index = found->second;
+                        break;
+                    }
                 }
             }
+            VarRead read{name_index, runtime_index};
+            return ast.add_node(Node{read});
         }
-        VarRead read{name_index, runtime_index};
-        return ast.add_node(Node{read});
     }
-
     throwError("Bolt Syntax Error: unrecognized operation or value type");
     return 0;
 }
